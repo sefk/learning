@@ -5,13 +5,14 @@ A ~7.7 minute explainer, in the style of [3Blue1Brown][3b1b], on how "thinking"
 training, backprop, and inference, and who uses LLMs heavily — including the
 local Qwen builds benchmarked in [`../../bench`][bench].
 
-There are two versions with identical visuals, named after the narrator's
-voice. Both are 1080p60, built by `build.sh`:
+There are three versions with identical visuals, named after the narrator's
+voice. All are 1080p60, built by `build.sh`:
 
 | File | Voice | Engine | Length |
 |------|-------|--------|--------|
-| `thinking-mode-brian.mp4` | Brian | [ElevenLabs][el] (cloud, `eleven_multilingual_v2`) | 7:42 |
-| `thinking-mode-michael.mp4` | Michael (`am_michael`) | [Kokoro-82M][kokoro] (local) | 8:29 |
+| `thinking-mode-brian.mp4` | Brian, American male | [ElevenLabs][el] (cloud, `eleven_multilingual_v2`) | 7:42 |
+| `thinking-mode-michael.mp4` | Michael (`am_michael`), American male | [Kokoro-82M][kokoro] (local) | 8:29 |
+| `thinking-mode-heart.mp4` | Heart (`af_heart`), American female | [Kokoro-82M][kokoro] (local) | 7:46 |
 
 The videos aren't committed: H.264 doesn't delta-compress, so every re-render
 would add a full copy to git history forever. Instead, publish each version
@@ -19,7 +20,7 @@ as a GitHub Release asset, which sits outside the repo and doesn't count
 toward its size:
 
 ```sh
-gh release create thinking-video-v1 thinking-video/thinking-mode-brian.mp4 thinking-video/thinking-mode-michael.mp4
+gh release create thinking-video-v1 thinking-video/thinking-mode-*.mp4
 ```
 
 ## What it covers
@@ -81,27 +82,37 @@ A full 1080p60 render of all six scenes takes a few minutes on an M1 Max.
 
 ## Local narration with Kokoro
 
-A comparison version uses [Kokoro-82M][kokoro], an open-weights (Apache 2.0)
-TTS model that runs locally. It's free and needs no API key.
+The Michael and Heart versions use [Kokoro-82M][kokoro], an open-weights
+(Apache 2.0) TTS model that runs locally. It's free and needs no API key.
+Everything is organised by voice name; for example, Heart:
 
 ```sh
-uv run tts_kokoro.py                          # → audio-kokoro/
-TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_a.py Intro JustTokens SerialDepth
-TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_b.py Training Dial Closing
-./build.sh kokoro                             # → thinking-mode-michael.mp4
+uv run tts_kokoro.py af_heart                 # → audio-kokoro/heart/
+TTS_VOICE=heart uv run manim -qh --media_dir media-heart scenes_a.py Intro JustTokens SerialDepth
+TTS_VOICE=heart uv run manim -qh --media_dir media-heart scenes_b.py Training Dial Closing
+./build.sh heart                              # → thinking-mode-heart.mp4
 ```
+
+Pass a full Kokoro voice id (`af_heart`) to `tts_kokoro.py`, and the short
+name after the underscore (`heart`) everywhere else. `TTS_VOICE` defaults to
+`brian` (the ElevenLabs narration in `audio/`), and `tts_kokoro.py` defaults to
+`am_michael`. The clip cache in `audio-kokoro/cache/` is shared between voices;
+the voice is part of each clip's cache key.
 
 - `tts_kokoro.py` declares its own dependencies inline (PEP 723), so `uv run`
   builds a separate Python 3.12 environment for it, since Kokoro doesn't
   support the project's Python yet. The first run downloads the model
   (~330 MB) and a spaCy English model. After that it narrates ~5× faster than
   real time on an M1 Max, so the whole script takes a couple of minutes.
-- Voice is `am_michael`, the closest stock match to ElevenLabs' "Brian".
-  Other male voices worth trying: `am_fenrir`, `am_puck`, `bm_george`
-  (British).
+- Voices: `am_michael` is the closest stock match to ElevenLabs' "Brian".
+  `af_heart` is the highest-rated voice in Kokoro's own quality ratings, well
+  above its male voices. Others worth trying: `af_bella` (American female),
+  `am_fenrir`, `am_puck`, `bm_george` (British). The first letter of the id
+  selects the accent (`a` American, `b` British).
 - Pronunciation fixes go in `PRONOUNCE`, using Kokoro's `[word](/IPA/)`
   syntax. Without that, "Qwen" comes out as the spelled-out letters "Q-wen".
-- Kokoro reads ~10% slower (8:29 vs 7:42 overall). `common.py` scales
+- Each voice reads at its own pace: Michael ~10% slower than Brian (8:29 vs
+  7:42), Heart about the same (7:46). `common.py` scales
   the mid-beat animation cues by each beat's duration ratio against the
   ElevenLabs clips, so the visuals stay on the right words. That means
   `audio/durations.json` must exist; `uv run python tts.py` rebuilds it from

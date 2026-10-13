@@ -13,4 +13,4 @@ thinking-video/thinking-mode-*.mp4
 
 # Kokoro comparison: everything regenerates locally for free
 thinking-video/audio-kokoro/
-thinking-video/media-kokoro/
+thinking-video/media-*/

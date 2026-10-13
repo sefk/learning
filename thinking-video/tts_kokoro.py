@@ -4,8 +4,10 @@
 # ///
 """Generate narration clips locally with Kokoro-82M, cached by text hash.
 
-Same layout as tts.py, but writes audio-kokoro/<Scene>_<i>.wav and
-audio-kokoro/durations.json. Run with `uv run tts_kokoro.py`; uv builds an
+Same layout as tts.py, but per voice: `uv run tts_kokoro.py af_heart` writes
+audio-kokoro/heart/<Scene>_<i>.wav and audio-kokoro/heart/durations.json
+(default voice am_michael). The first letter of a Kokoro voice id picks the
+accent: a = American, b = British. uv builds an
 isolated Python 3.12 environment from the header above (Kokoro doesn't
 support the project's Python yet).
 """
@@ -21,7 +23,7 @@ from kokoro import KPipeline
 
 from narration import NARRATION
 
-VOICE = "am_michael"
+DEFAULT_VOICE = "am_michael"
 SPEED = 1.0
 RATE = 24000
 
@@ -31,8 +33,7 @@ PRONOUNCE = {
 }
 
 ROOT = Path(__file__).parent
-AUDIO = ROOT / "audio-kokoro"
-CACHE = AUDIO / "cache"
+CACHE = ROOT / "audio-kokoro" / "cache"  # shared by all voices; the voice is in the key
 
 
 def prepare(text):
@@ -41,31 +42,34 @@ def prepare(text):
     return text
 
 
-def synth(pipeline, text):
-    digest = hashlib.sha256(json.dumps([VOICE, SPEED, prepare(text)]).encode()).hexdigest()[:16]
+def synth(pipeline, voice, text):
+    digest = hashlib.sha256(json.dumps([voice, SPEED, prepare(text)]).encode()).hexdigest()[:16]
     cached = CACHE / f"{digest}.wav"
     if cached.exists():
         return cached
     # Kokoro splits long input into chunks; join them back into one clip.
-    audio = np.concatenate([a for _, _, a in pipeline(prepare(text), voice=VOICE, speed=SPEED)])
+    audio = np.concatenate([a for _, _, a in pipeline(prepare(text), voice=voice, speed=SPEED)])
     sf.write(cached, audio, RATE)
     print(f"  synthesized {digest} ({len(text)} chars)", file=sys.stderr)
     return cached
 
 
 def main():
+    voice = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_VOICE
+    audio = ROOT / "audio-kokoro" / voice.split("_", 1)[1]  # am_michael -> michael
+    audio.mkdir(parents=True, exist_ok=True)
     CACHE.mkdir(parents=True, exist_ok=True)
-    pipeline = KPipeline(lang_code="a", repo_id="hexgrad/Kokoro-82M")
+    pipeline = KPipeline(lang_code=voice[0], repo_id="hexgrad/Kokoro-82M")
     durations = {}
     for scene, beats in NARRATION.items():
         for i, text in enumerate(beats):
-            out = AUDIO / f"{scene}_{i}.wav"
-            out.write_bytes(synth(pipeline, text).read_bytes())
+            out = audio / f"{scene}_{i}.wav"
+            out.write_bytes(synth(pipeline, voice, text).read_bytes())
             durations[f"{scene}_{i}"] = sf.info(out).duration
         total = sum(v for k, v in durations.items() if k.startswith(scene + "_"))
         print(f"{scene}: {len(beats)} beats, {total:.1f}s")
-    (AUDIO / "durations.json").write_text(json.dumps(durations, indent=1))
-    print(f"total: {sum(durations.values()) / 60:.1f} min")
+    (audio / "durations.json").write_text(json.dumps(durations, indent=1))
+    print(f"{voice} total: {sum(durations.values()) / 60:.1f} min -> {audio}")
 
 
 if __name__ == "__main__":

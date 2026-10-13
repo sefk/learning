@@ -8,13 +8,14 @@ from manim import *
 
 ROOT = Path(__file__).parent
 
-# Which narration to sync to: TTS_BACKEND=elevenlabs (default, audio/*.mp3)
-# or kokoro (audio-kokoro/*.wav).
-BACKEND = os.environ.get("TTS_BACKEND", "elevenlabs")
-AUDIO_DIR, AUDIO_EXT = {
-    "elevenlabs": (ROOT / "audio", ".mp3"),
-    "kokoro": (ROOT / "audio-kokoro", ".wav"),
-}[BACKEND]
+# Which narration to sync to, by voice: TTS_VOICE=brian (default; ElevenLabs,
+# audio/*.mp3) or a Kokoro voice such as michael or heart
+# (audio-kokoro/<voice>/*.wav, made by tts_kokoro.py).
+VOICE = os.environ.get("TTS_VOICE", "brian")
+if VOICE == "brian":
+    AUDIO_DIR, AUDIO_EXT = ROOT / "audio", ".mp3"
+else:
+    AUDIO_DIR, AUDIO_EXT = ROOT / "audio-kokoro" / VOICE, ".wav"
 DURATIONS = json.loads((AUDIO_DIR / "durations.json").read_text())
 # Mid-beat cue times (VScene.at) were tuned against the ElevenLabs reading;
 # other voices speak at a different pace, so cues are scaled per beat.
