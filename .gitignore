@@ -8,10 +8,9 @@ thinking-video/media/
 # per-scene clips + durations are rebuilt from audio/cache/ by tts.py (no API calls)
 thinking-video/audio/*.mp3
 thinking-video/audio/durations.json
-# final video: published as a GitHub Release asset, not committed
-thinking-video/thinking-mode.mp4
+# final videos (thinking-mode-<voice>.mp4): published as GitHub Release assets, not committed
+thinking-video/thinking-mode-*.mp4
 
 # Kokoro comparison: everything regenerates locally for free
 thinking-video/audio-kokoro/
 thinking-video/media-kokoro/
-thinking-video/thinking-mode-kokoro.mp4

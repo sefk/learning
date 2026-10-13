@@ -1,8 +1,11 @@
 #!/bin/sh
 # Concatenate rendered 1080p60 scenes into the final video.
 #
-#   ./build.sh            ElevenLabs narration: media/ -> thinking-mode.mp4
-#   ./build.sh kokoro     Kokoro narration: media-kokoro/ -> thinking-mode-kokoro.mp4
+#   ./build.sh            ElevenLabs "Brian": media/ -> thinking-mode-brian.mp4
+#   ./build.sh kokoro     Kokoro "Michael": media-kokoro/ -> thinking-mode-michael.mp4
+#
+# Output files are named after the narrator's voice; keep these in step with
+# VOICE_ID in tts.py and VOICE in tts_kokoro.py.
 #
 # Each Manim render's audio track ends at its last sound, up to ~2.5s before
 # the video does. Joining them with the concat demuxer leaves holes in the
@@ -12,11 +15,11 @@
 set -e
 cd "$(dirname "$0")"
 BACKEND=${1:-elevenlabs}
-if [ "$BACKEND" = elevenlabs ]; then
-  MEDIA=media OUT=thinking-mode.mp4
-else
-  MEDIA=media-$BACKEND OUT=thinking-mode-$BACKEND.mp4
-fi
+case "$BACKEND" in
+  elevenlabs) MEDIA=media OUT=thinking-mode-brian.mp4 ;;
+  kokoro) MEDIA=media-kokoro OUT=thinking-mode-michael.mp4 ;;
+  *) echo "unknown backend: $BACKEND (elevenlabs|kokoro)" >&2; exit 1 ;;
+esac
 SCENES="scenes_a/Intro scenes_a/JustTokens scenes_a/SerialDepth scenes_b/Training scenes_b/Dial scenes_b/Closing"
 
 inputs=""

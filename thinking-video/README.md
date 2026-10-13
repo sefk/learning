@@ -5,14 +5,21 @@ A ~7.7 minute explainer, in the style of [3Blue1Brown][3b1b], on how "thinking"
 training, backprop, and inference, and who uses LLMs heavily — including the
 local Qwen builds benchmarked in [`../../bench`][bench].
 
-Output: **`thinking-mode.mp4`** (1080p60, 7:42, ~23 MB), built by `build.sh`.
-The video isn't committed: H.264 doesn't delta-compress, so every re-render
+There are two versions with identical visuals, named after the narrator's
+voice. Both are 1080p60, built by `build.sh`:
+
+| File | Voice | Engine | Length |
+|------|-------|--------|--------|
+| `thinking-mode-brian.mp4` | Brian | [ElevenLabs][el] (cloud, `eleven_multilingual_v2`) | 7:42 |
+| `thinking-mode-michael.mp4` | Michael (`am_michael`) | [Kokoro-82M][kokoro] (local) | 8:29 |
+
+The videos aren't committed: H.264 doesn't delta-compress, so every re-render
 would add a full copy to git history forever. Instead, publish each version
 as a GitHub Release asset, which sits outside the repo and doesn't count
 toward its size:
 
 ```sh
-gh release create thinking-video-v1 thinking-video/thinking-mode.mp4
+gh release create thinking-video-v1 thinking-video/thinking-mode-brian.mp4 thinking-video/thinking-mode-michael.mp4
 ```
 
 ## What it covers
@@ -67,7 +74,7 @@ uv run python tts.py                          # (re)synthesize changed beats
 uv run manim -ql scenes_a.py SerialDepth      # quick 480p15 preview of one scene
 uv run manim -qh scenes_a.py Intro JustTokens SerialDepth
 uv run manim -qh scenes_b.py Training Dial Closing
-./build.sh                                    # → thinking-mode.mp4
+./build.sh                                    # → thinking-mode-brian.mp4
 ```
 
 A full 1080p60 render of all six scenes takes a few minutes on an M1 Max.
@@ -81,7 +88,7 @@ TTS model that runs locally. It's free and needs no API key.
 uv run tts_kokoro.py                          # → audio-kokoro/
 TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_a.py Intro JustTokens SerialDepth
 TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_b.py Training Dial Closing
-./build.sh kokoro                             # → thinking-mode-kokoro.mp4
+./build.sh kokoro                             # → thinking-mode-michael.mp4
 ```
 
 - `tts_kokoro.py` declares its own dependencies inline (PEP 723), so `uv run`
