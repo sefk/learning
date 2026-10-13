@@ -72,6 +72,35 @@ uv run manim -qh scenes_b.py Training Dial Closing
 
 A full 1080p60 render of all six scenes takes a few minutes on an M1 Max.
 
+## Local narration with Kokoro
+
+A comparison version uses [Kokoro-82M][kokoro], an open-weights (Apache 2.0)
+TTS model that runs locally. It's free and needs no API key.
+
+```sh
+uv run tts_kokoro.py                          # → audio-kokoro/
+TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_a.py Intro JustTokens SerialDepth
+TTS_BACKEND=kokoro uv run manim -qh --media_dir media-kokoro scenes_b.py Training Dial Closing
+./build.sh kokoro                             # → thinking-mode-kokoro.mp4
+```
+
+- `tts_kokoro.py` declares its own dependencies inline (PEP 723), so `uv run`
+  builds a separate Python 3.12 environment for it, since Kokoro doesn't
+  support the project's Python yet. The first run downloads the model
+  (~330 MB) and a spaCy English model. After that it narrates ~5× faster than
+  real time on an M1 Max, so the whole script takes a couple of minutes.
+- Voice is `am_michael`, the closest stock match to ElevenLabs' "Brian".
+  Other male voices worth trying: `am_fenrir`, `am_puck`, `bm_george`
+  (British).
+- Pronunciation fixes go in `PRONOUNCE`, using Kokoro's `[word](/IPA/)`
+  syntax. Without that, "Qwen" comes out as the spelled-out letters "Q-wen".
+- Kokoro reads ~10% slower (8:29 vs 7:42 overall). `common.py` scales
+  the mid-beat animation cues by each beat's duration ratio against the
+  ElevenLabs clips, so the visuals stay on the right words. That means
+  `audio/durations.json` must exist; `uv run python tts.py` rebuilds it from
+  the committed cache without calling the API.
+- Everything Kokoro-related is git-ignored, since it all regenerates locally.
+
 ## What it cost
 
 On the ElevenLabs **free plan**, as I understand it, you get 10,000 credits a
@@ -106,3 +135,4 @@ remaining balance.
 [faithful]: https://arxiv.org/abs/2505.05410
 [el]: https://elevenlabs.io/
 [manim]: https://www.manim.community/
+[kokoro]: https://huggingface.co/hexgrad/Kokoro-82M

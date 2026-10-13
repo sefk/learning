@@ -69,11 +69,8 @@ class Intro(VScene):
             T("3.  How a model learns to use them", 34),
         ).arrange(DOWN, aligned_edge=LEFT, buff=0.55).next_to(title, DOWN, buff=1.0)
         cues = [4.6, 7.6, 10.4]  # seconds into the clip where each idea is spoken
-        start = self._beat_end - DURATIONS["Intro_2"]
         for item, cue in zip(items, cues):
-            wait = start + cue - self.renderer.time
-            if wait > 0:
-                self.wait(wait)
+            self.at(cue)
             self.play(FadeIn(item, shift=RIGHT * 0.3), run_time=0.7)
         self.end(1.5)
 

@@ -1,12 +1,24 @@
 """Shared style and narration-sync helpers for all scenes."""
 
 import json
+import os
 from pathlib import Path
 
 from manim import *
 
 ROOT = Path(__file__).parent
-DURATIONS = json.loads((ROOT / "audio" / "durations.json").read_text())
+
+# Which narration to sync to: TTS_BACKEND=elevenlabs (default, audio/*.mp3)
+# or kokoro (audio-kokoro/*.wav).
+BACKEND = os.environ.get("TTS_BACKEND", "elevenlabs")
+AUDIO_DIR, AUDIO_EXT = {
+    "elevenlabs": (ROOT / "audio", ".mp3"),
+    "kokoro": (ROOT / "audio-kokoro", ".wav"),
+}[BACKEND]
+DURATIONS = json.loads((AUDIO_DIR / "durations.json").read_text())
+# Mid-beat cue times (VScene.at) were tuned against the ElevenLabs reading;
+# other voices speak at a different pace, so cues are scaled per beat.
+CUE_REFERENCE = json.loads((ROOT / "audio" / "durations.json").read_text())
 
 BG = "#0e0f13"
 SERIF = "Charter"
@@ -61,13 +73,14 @@ class VScene(Scene):
         if i > 0 or gap:
             self.wait(gap)
         key = f"{type(self).__name__}_{i}"
-        self.add_sound(str(ROOT / "audio" / f"{key}.mp3"))
+        self.add_sound(str(AUDIO_DIR / f"{key}{AUDIO_EXT}"))
         self._beat_start = self.renderer.time
         self._beat_end = self._beat_start + DURATIONS[key]
+        self._cue_scale = DURATIONS[key] / CUE_REFERENCE[key]
 
     def at(self, t):
         """Wait until t seconds into the current beat's clip (no-op if already past)."""
-        remaining = self._beat_start + t - self.renderer.time
+        remaining = self._beat_start + t * self._cue_scale - self.renderer.time
         if remaining > 0:
             self.wait(remaining)
 
