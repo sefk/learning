@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+.tmp/
+
+# thinking-video: regenerable build outputs
+thinking-video/media/
+# per-scene clips + durations are rebuilt from audio/cache/ by tts.py (no API calls)
+thinking-video/audio/*.mp3
+thinking-video/audio/durations.json
+# final video: published as a GitHub Release asset, not committed
+thinking-video/thinking-mode.mp4
