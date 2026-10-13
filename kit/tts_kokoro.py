@@ -25,7 +25,7 @@ from kokoro import KPipeline
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from kit.voices import VOICES, audio_dir, engine, load_narration  # noqa: E402
 
-SPEED = 1.0
+SPEED = 1.0  # a video can set KOKORO_SPEED in narration.py (below 1 is slower)
 RATE = 24000
 
 # Kokoro's inline pronunciation syntax: [word](/IPA/). Shared by every video;
@@ -41,13 +41,13 @@ def prepare(text, pronounce):
     return text
 
 
-def synth(cache, pipeline, voice_id, text):
-    digest = hashlib.sha256(json.dumps([voice_id, SPEED, text]).encode()).hexdigest()[:16]
+def synth(cache, pipeline, voice_id, speed, text):
+    digest = hashlib.sha256(json.dumps([voice_id, speed, text]).encode()).hexdigest()[:16]
     cached = cache / f"{digest}.wav"
     if cached.exists():
         return cached
     # Kokoro splits long input into chunks; join them back into one clip.
-    audio = np.concatenate([a for _, _, a in pipeline(text, voice=voice_id, speed=SPEED)])
+    audio = np.concatenate([a for _, _, a in pipeline(text, voice=voice_id, speed=speed)])
     sf.write(cached, audio, RATE)
     print(f"  synthesized {digest} ({len(text)} chars)", file=sys.stderr)
     return cached
@@ -60,6 +60,7 @@ def main():
     voice_id = VOICES[voice][1]  # the first letter picks the accent: a = American, b = British
     narration = load_narration(video)
     pronounce = PRONOUNCE | getattr(narration, "PRONOUNCE", {})
+    speed = getattr(narration, "KOKORO_SPEED", SPEED)
     cache = video / "audio" / "cache-kokoro"
     audio = audio_dir(video, voice)
     cache.mkdir(parents=True, exist_ok=True)
@@ -69,7 +70,7 @@ def main():
     for scene, beats in narration.NARRATION.items():
         for i, text in enumerate(beats):
             out = audio / f"{scene}_{i}.wav"
-            out.write_bytes(synth(cache, pipeline, voice_id, prepare(text, pronounce)).read_bytes())
+            out.write_bytes(synth(cache, pipeline, voice_id, speed, prepare(text, pronounce)).read_bytes())
             durations[f"{scene}_{i}"] = sf.info(out).duration
         total = sum(v for k, v in durations.items() if k.startswith(scene + "_"))
         print(f"{scene}: {len(beats)} beats, {total:.1f}s")

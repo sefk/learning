@@ -43,7 +43,7 @@ C_PURPLE = "#9A72AC"
 
 config.background_color = BG
 
-BEAT_GAP = 0.45  # silence after each beat
+BEAT_GAP = 0.45  # default silence after each beat; a video can set its own in narration.py
 
 
 def T(text, size=36, color=WHITE, **kw):
@@ -66,6 +66,7 @@ class VScene(Scene):
         self._video_dir = Path(inspect.getfile(type(self))).resolve().parent
         self._voice = os.environ.get("TTS_VOICE") or load_narration(self._video_dir).CUE_VOICE
         self._durations, self._cue_reference = narration_timing(self._video_dir, self._voice)
+        self._gap = getattr(load_narration(self._video_dir), "BEAT_GAP", BEAT_GAP)
 
     def _flush(self):
         if self._beat_end is None:
@@ -77,8 +78,9 @@ class VScene(Scene):
             self.wait(remaining)
         self._beat_end = None
 
-    def beat(self, i, gap=BEAT_GAP):
+    def beat(self, i, gap=None):
         self._flush()
+        gap = self._gap if gap is None else gap
         if i > 0 or gap:
             self.wait(gap)
         key = f"{type(self).__name__}_{i}"

@@ -24,6 +24,9 @@ Each video directory has a `narration.py` with:
 - `SCENES`: scene file → scene classes, in play order.
 - `SLUG`: the output name, `<SLUG>-<voice>.mp4`.
 - `CUE_VOICE`: the voice the scenes' mid-beat cues were timed against.
+- Optionally, `BEAT_GAP` (seconds of silence between beats, default 0.45),
+  `KOKORO_SPEED` (default 1.0; lower is slower) and `PRONOUNCE` (extra
+  Kokoro pronunciation hints), for pacing a video differently.
 
 The steps, run from the repo root:
 
