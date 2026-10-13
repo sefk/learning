@@ -15,6 +15,7 @@ support the project's Python yet).
 
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -28,16 +29,28 @@ from kit.voices import VOICES, audio_dir, engine, load_narration  # noqa: E402
 SPEED = 1.0  # a video can set KOKORO_SPEED in narration.py (below 1 is slower)
 RATE = 24000
 
-# Kokoro's inline pronunciation syntax: [word](/IPA/). Shared by every video;
-# a video's narration.py can add its own in a PRONOUNCE dict.
+# Words Kokoro gets wrong, with the phonemes to say instead. Shared by every
+# video; a video's narration.py can add its own in a PRONOUNCE dict. Phonemes
+# use Kokoro's (misaki's) alphabet: IPA plus A = "ay", I = "eye", O = "oh";
+# ˈ marks primary stress, ˌ secondary. To see what Kokoro would say on its
+# own: misaki.en.G2P()(text). Matching is whole-word and ignores case, and
+# each inflection needs its own entry.
 PRONOUNCE = {
-    "Qwen": "[Qwen](/kwˈɛn/)",
+    "Qwen": "kwˈɛn",
+    "prefill": "pɹˈifˌɪl",  # not pre-FILL
+    "prefills": "pɹˈifˌɪlz",
+    "prefilled": "pɹˈifˌɪld",
+    "prefilling": "pɹˈifˌɪlɪŋ",
+    "overhead": "ˈOvəɹhˌɛd",  # the noun, not over-HEAD
+    "A three B": "ˈA θɹˈi bˈi",  # the letter, not the article ("uh three B")
+    "SWE-bench": "swˈibˌɛnʧ",  # "swee", not spelled out
 }
 
 
 def prepare(text, pronounce):
-    for word, hint in pronounce.items():
-        text = text.replace(word, hint)
+    # Kokoro's inline syntax is [word](/phonemes/); the matched text is kept.
+    for word, phonemes in pronounce.items():
+        text = re.sub(rf"\b{re.escape(word)}\b", lambda m: f"[{m[0]}](/{phonemes}/)", text, flags=re.I)
     return text
 
 

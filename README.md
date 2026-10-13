@@ -55,8 +55,11 @@ Without `--render`, `kit.build` just reassembles the existing renders.
   (Apache 2.0) TTS model that runs locally, free, at ~5× real time on an M1
   Max. It declares its own dependencies (PEP 723), so `uv run` builds a
   separate Python 3.12 environment for it; the first run downloads the model
-  (~330 MB). Pronunciation fixes go in `PRONOUNCE`, using Kokoro's
-  `[word](/IPA/)` syntax, or in a video's own `PRONOUNCE` dict.
+  (~330 MB). Its `PRONOUNCE` dict is the shared library of words Kokoro
+  gets wrong (prefill, overhead, SWE-bench, the A in A3B, …), mapping each
+  to the phonemes to say instead; a video can add its own in `PRONOUNCE`.
+  Add a word whenever one comes out wrong, and check new scripts against
+  the list.
 - **`scene.py`** — style (palette, Charter and Menlo fonts, no LaTeX needed),
   helpers, and `VScene`, which syncs animation to narration: `self.beat(i)`
   starts clip *i*, `self.at(t)` waits until *t* seconds into the clip,

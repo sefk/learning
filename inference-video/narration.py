@@ -16,9 +16,9 @@ SCENES = {  # scene file -> scenes in it, in play order
     "scenes_d": ["KVCache", "Caching", "Speculative", "Recap"],
 }
 PRONOUNCE = {
-    "DeltaNet": "[DeltaNet](/dˈɛltənˌɛt/)",
-    "MMLU": "[MMLU](/ˌɛmˌɛmˌɛlˈju/)",
-    "JSON": "[JSON](/ʤˈeɪsən/)",
+    "DeltaNet": "dˈɛltənˌɛt",
+    "MMLU": "ˌɛmˌɛmˌɛlˈju",
+    "JSON": "ʤˈeɪsən",
 }
 
 NARRATION = {
