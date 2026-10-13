@@ -58,7 +58,8 @@ class VScene(Scene):
     """Scene whose pacing follows narration clips.
 
     Usage: self.beat(i) starts clip i; animations follow; the next beat()
-    (or self.end()) waits out whatever audio remains.
+    (or self.end()) waits out whatever audio remains. Within a beat,
+    self.at(t) waits for a time and self.cue("phrase") for a phrase.
     """
 
     def setup(self):
@@ -66,7 +67,9 @@ class VScene(Scene):
         self._video_dir = Path(inspect.getfile(type(self))).resolve().parent
         self._voice = os.environ.get("TTS_VOICE") or load_narration(self._video_dir).CUE_VOICE
         self._durations, self._cue_reference = narration_timing(self._video_dir, self._voice)
-        self._gap = getattr(load_narration(self._video_dir), "BEAT_GAP", BEAT_GAP)
+        narration = load_narration(self._video_dir)
+        self._gap = getattr(narration, "BEAT_GAP", BEAT_GAP)
+        self._texts = narration.NARRATION.get(type(self).__name__, [])
 
     def _flush(self):
         if self._beat_end is None:
@@ -89,12 +92,28 @@ class VScene(Scene):
         self._beat_start = self.renderer.time
         self._beat_end = self._beat_start + self._durations[key]
         self._cue_scale = self._durations[key] / self._cue_reference[key]
+        self._beat_text = self._texts[i]
 
     def at(self, t):
         """Wait until t seconds into the current beat's clip (no-op if already past)."""
         remaining = self._beat_start + t * self._cue_scale - self.renderer.time
         if remaining > 0:
             self.wait(remaining)
+
+    def cue(self, phrase):
+        """Wait until the narration reaches `phrase` in the current beat.
+
+        The time is estimated from where the phrase sits in the beat's text,
+        which tracks a steady narrator to within a second or so.
+        """
+        idx = self._beat_text.find(phrase)
+        assert idx >= 0, f"{phrase!r} not in {type(self).__name__} beat text"
+        target = self._beat_start + (self._beat_end - self._beat_start) * idx / len(self._beat_text)
+        late = self.renderer.time - target
+        if late > 1.0:
+            print(f"NOTE {type(self).__name__} cue {phrase!r} is {late:.1f}s late")
+        if late < 0:
+            self.wait(-late)
 
     def left(self):
         """Seconds of audio remaining in the current beat."""

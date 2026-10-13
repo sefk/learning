@@ -40,6 +40,15 @@ def duration(path):
     return float(out.stdout)
 
 
+def has_audio(path):
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index", "-of", "csv=p=0",
+         str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    return bool(out.stdout.strip())
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     flags = {a for a in sys.argv[1:] if a.startswith("--")}
@@ -58,6 +67,9 @@ def main():
         path = video / "media" / voice / "videos" / file / "1080p60" / f"{scene}.mp4"
         if not path.exists():
             sys.exit(f"missing {path} (add --render)")
+        if not has_audio(path):
+            # seen after re-rendering a scene from Manim's partial-movie cache
+            sys.exit(f"{path} has no audio track; re-render it with manim --disable_caching")
         d = duration(path)
         inputs += ["-i", str(path)]
         filters.append(f"[{i}:a]aresample=48000,apad=whole_dur={d},atrim=duration={d}[a{i}];")

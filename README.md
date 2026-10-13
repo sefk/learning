@@ -58,9 +58,12 @@ Without `--render`, `kit.build` just reassembles the existing renders.
   `[word](/IPA/)` syntax, or in a video's own `PRONOUNCE` dict.
 - **`scene.py`** — style (palette, Charter and Menlo fonts, no LaTeX needed),
   helpers, and `VScene`, which syncs animation to narration: `self.beat(i)`
-  starts clip *i*, `self.at(t)` waits until *t* seconds into the clip, and the
-  next `beat()` pads out whatever audio remains, so timing follows the
-  narration automatically. Cue times are scaled per beat for voices other
+  starts clip *i*, `self.at(t)` waits until *t* seconds into the clip,
+  `self.cue("phrase")` waits until the narration reaches that phrase
+  (estimated from its position in the beat's text; prints `NOTE` when an
+  animation runs more than a second past it), and the next `beat()` pads out
+  whatever audio remains, so timing follows the narration automatically.
+  Cue times are scaled per beat for voices other
   than `CUE_VOICE`. A beat that overruns its audio prints
   `WARNING <Scene> beat overran audio`. The voice comes from `TTS_VOICE`
   (default: `CUE_VOICE`).
@@ -69,7 +72,9 @@ Without `--render`, `kit.build` just reassembles the existing renders.
   last sound, up to ~2.5 s before its video does, so each scene's audio is
   padded with silence to its video length before joining. Without that padding
   the audio track has holes at scene boundaries, and some players drop sound
-  there until you seek.
+  there until you seek. It refuses to join a render with no audio track,
+  which Manim can produce when re-rendering a scene from its partial-movie
+  cache; `manim --disable_caching` fixes that.
 
 Needs `uv` and `ffmpeg`.
 
