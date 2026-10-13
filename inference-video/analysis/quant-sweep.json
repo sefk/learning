@@ -1,0 +1,82 @@
+{
+ "4-bit (published)": {
+  "bits_per_weight": 4.5,
+  "gb": 19.5,
+  "mmlu_correct": 419,
+  "mmlu_total": 500,
+  "mmlu": 0.838,
+  "perplexity": 2.776,
+  "sample": "Sunlight reaches Earth as white light, which is composed of all colors of the visible spectrum. As this light passes through the atmosphere, it collides with gas molecules and other small particles, causing shorter blue wavelengths to scatter more strongly than longer red wavelengths. This scattered blue light is what we see when we look up at the sky during the day.",
+  "seconds": 275
+ },
+ "8-bit": {
+  "bits_per_weight": 8.5,
+  "gb": 36.8,
+  "mmlu_correct": 428,
+  "mmlu_total": 500,
+  "mmlu": 0.856,
+  "perplexity": 2.695,
+  "sample": "Sunlight appears white but is actually composed of all colors of the rainbow, each traveling as a wave of a different length. When this light enters Earth's atmosphere, it collides with gas molecules and other particles, causing shorter blue waves to scatter in all directions much more strongly than longer red waves. Consequently, when we look up at the sky, our eyes detect this scattered blue light coming from every direction, making the sky appear blue.",
+  "seconds": 236
+ },
+ "4-bit": {
+  "bits_per_weight": 4.5,
+  "gb": 19.5,
+  "mmlu_correct": 425,
+  "mmlu_total": 500,
+  "mmlu": 0.85,
+  "perplexity": 2.756,
+  "sample": "Sunlight reaches Earth as white light, which is actually a mixture of all colors in the visible spectrum. When this light enters our atmosphere, it collides with gas molecules and other small particles, causing the light to scatter in all directions. Blue light is scattered more strongly than other colors because it travels in shorter, smaller waves, making the sky appear blue to our eyes.",
+  "seconds": 346
+ },
+ "3-bit": {
+  "bits_per_weight": 3.5,
+  "gb": 15.2,
+  "mmlu_correct": 377,
+  "mmlu_total": 500,
+  "mmlu": 0.754,
+  "perplexity": 3.221,
+  "sample": "Sunlight scatters when it enters Earth's atmosphere, where gas molecules and small particles cause shorter wavelengths of light to disperse more than longer ones. Because blue light travels in shorter, smaller waves, it is scattered in all directions by the gases in the atmosphere. This widespread scattering of blue light is what makes the sky appear blue to our eyes during the day.",
+  "seconds": 316
+ },
+ "2-bit": {
+  "bits_per_weight": 2.5,
+  "gb": 10.8,
+  "mmlu_correct": 140,
+  "mmlu_total": 500,
+  "mmlu": 0.28,
+  "perplexity": 24.248,
+  "sample": "Here is the explanation for the **Sky** (as part of the first 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1<ref=1448.88344444444446644444466666664",
+  "seconds": 283
+ },
+ "2-bit experts, 8-bit rest": {
+  "bits_per_weight": 2.92,
+  "gb": 12.7,
+  "mmlu_correct": 410,
+  "mmlu_total": 500,
+  "mmlu": 0.82,
+  "perplexity": 3.136,
+  "sample": "Sunlight appears white but is actually composed of all the colors of the rainbow. When this light enters Earth's atmosphere, it collides with gas molecules and small particles, causing shorter wavelengths like blue to scatter more than longer wavelengths like red. This scattered blue light is what our eyes see when we look up at the sky.",
+  "seconds": 256
+ },
+ "3-bit experts, 8-bit rest": {
+  "bits_per_weight": 3.85,
+  "gb": 16.7,
+  "mmlu_correct": 421,
+  "mmlu_total": 500,
+  "mmlu": 0.842,
+  "perplexity": 2.748,
+  "sample": "Sunlight reaches Earth as white light, which is composed of all the colors of the rainbow. As this light passes through the atmosphere, it collides with gas molecules and other small particles, causing shorter blue wavelengths to scatter more strongly than longer red wavelengths. This scattered blue light is what we see when we look up at the sky during the day.",
+  "seconds": 292
+ },
+ "2-bit, groups of 32": {
+  "bits_per_weight": 3.0,
+  "gb": 13.0,
+  "mmlu_correct": 172,
+  "mmlu_total": 500,
+  "mmlu": 0.344,
+  "perplexity": 8.43,
+  "sample": "The sky appears blue because of how sunlight interacts with the Earth's atmosphere. When sunlight reaches Earth, it is scattered by the molecules in the air, and this scattering is most effective for the shorter, blue wavelengths of light. Consequently, our eyes perceive this scattered blue light, which is why the sky often looks blue during the day.",
+  "seconds": 309
+ }
+}
