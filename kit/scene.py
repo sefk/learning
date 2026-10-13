@@ -1,25 +1,30 @@
-"""Shared style and narration-sync helpers for all scenes."""
+"""Shared style and narration-sync helpers for every video's scenes."""
 
+import inspect
 import json
 import os
+from functools import cache
 from pathlib import Path
 
 from manim import *
 
-ROOT = Path(__file__).parent
+from kit.voices import EXT, audio_dir, engine, load_narration
 
-# Which narration to sync to, by voice: TTS_VOICE=brian (default; ElevenLabs,
-# audio/*.mp3) or a Kokoro voice such as michael or heart
-# (audio-kokoro/<voice>/*.wav, made by tts_kokoro.py).
-VOICE = os.environ.get("TTS_VOICE", "brian")
-if VOICE == "brian":
-    AUDIO_DIR, AUDIO_EXT = ROOT / "audio", ".mp3"
-else:
-    AUDIO_DIR, AUDIO_EXT = ROOT / "audio-kokoro" / VOICE, ".wav"
-DURATIONS = json.loads((AUDIO_DIR / "durations.json").read_text())
-# Mid-beat cue times (VScene.at) were tuned against the ElevenLabs reading;
-# other voices speak at a different pace, so cues are scaled per beat.
-CUE_REFERENCE = json.loads((ROOT / "audio" / "durations.json").read_text())
+
+@cache
+def narration_timing(video_dir, voice):
+    """Clip durations for this voice, and for the voice the cues were timed against.
+
+    The voice comes from TTS_VOICE (default: the video's CUE_VOICE). Mid-beat
+    cue times (VScene.at) were tuned against CUE_VOICE's reading; other voices
+    speak at a different pace, so cues are scaled per beat.
+    """
+    def durations(v):
+        return json.loads((audio_dir(video_dir, v) / "durations.json").read_text())
+
+    cue_voice = load_narration(video_dir).CUE_VOICE
+    return durations(voice), durations(cue_voice)
+
 
 BG = "#0e0f13"
 SERIF = "Charter"
@@ -58,6 +63,9 @@ class VScene(Scene):
 
     def setup(self):
         self._beat_end = None
+        self._video_dir = Path(inspect.getfile(type(self))).resolve().parent
+        self._voice = os.environ.get("TTS_VOICE") or load_narration(self._video_dir).CUE_VOICE
+        self._durations, self._cue_reference = narration_timing(self._video_dir, self._voice)
 
     def _flush(self):
         if self._beat_end is None:
@@ -74,10 +82,11 @@ class VScene(Scene):
         if i > 0 or gap:
             self.wait(gap)
         key = f"{type(self).__name__}_{i}"
-        self.add_sound(str(AUDIO_DIR / f"{key}{AUDIO_EXT}"))
+        clip = audio_dir(self._video_dir, self._voice) / f"{key}{EXT[engine(self._voice)]}"
+        self.add_sound(str(clip))
         self._beat_start = self.renderer.time
-        self._beat_end = self._beat_start + DURATIONS[key]
-        self._cue_scale = DURATIONS[key] / CUE_REFERENCE[key]
+        self._beat_end = self._beat_start + self._durations[key]
+        self._cue_scale = self._durations[key] / self._cue_reference[key]
 
     def at(self, t):
         """Wait until t seconds into the current beat's clip (no-op if already past)."""

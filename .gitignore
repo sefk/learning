@@ -3,14 +3,15 @@
 __pycache__/
 .tmp/
 
-# thinking-video: regenerable build outputs
-thinking-video/media/
-# per-scene clips + durations are rebuilt from audio/cache/ by tts.py (no API calls)
-thinking-video/audio/*.mp3
-thinking-video/audio/durations.json
-# final videos (thinking-mode-<voice>.mp4): published as GitHub Release assets, not committed
-thinking-video/thinking-mode-*.mp4
+# Per video: regenerable build outputs
+*/media/
+# per-voice clips + durations are rebuilt from the caches, without API calls
+*/audio/*/
+!*/audio/cache-elevenlabs/
+# Kokoro clips regenerate locally for free
+*/audio/cache-kokoro/
+# final videos (<slug>-<voice>.mp4): published as GitHub Release assets, not committed
+*/*.mp4
 
-# Kokoro comparison: everything regenerates locally for free
-thinking-video/audio-kokoro/
-thinking-video/media-*/
+# raw router traces (regenerable in under a minute)
+inference-video/analysis/routing.json

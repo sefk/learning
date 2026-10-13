@@ -4,6 +4,13 @@ Each beat becomes one audio clip; scenes play one beat's animations while its
 clip plays, then wait out whatever audio remains.
 """
 
+SLUG = "thinking-mode"  # output: thinking-mode-<voice>.mp4
+CUE_VOICE = "brian"  # the voice the scenes' mid-beat cues were timed against
+SCENES = {  # scene file -> scenes in it, in play order
+    "scenes_a": ["Intro", "JustTokens", "SerialDepth"],
+    "scenes_b": ["Training", "Dial", "Closing"],
+}
+
 NARRATION = {
     "Intro": [
         "If you've used a reasoning model, you've watched it do this. You ask a "
@@ -138,5 +145,3 @@ NARRATION = {
         "seeing. A sixty-four layer network, borrowing a piece of paper.",
     ],
 }
-
-SCENE_ORDER = ["Intro", "JustTokens", "SerialDepth", "Training", "Dial", "Closing"]

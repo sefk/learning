@@ -1,4 +1,4 @@
-from common import *
+from kit.scene import *
 
 
 class Intro(VScene):

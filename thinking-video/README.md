@@ -6,7 +6,7 @@ training, backprop, and inference, and who uses LLMs heavily — including the
 local Qwen builds benchmarked in [`../../bench`][bench].
 
 There are three versions with identical visuals, named after the narrator's
-voice. All are 1080p60, built by `build.sh`:
+voice. All are 1080p60, built with the shared tools in [`../kit`][kit]:
 
 | File | Voice | Engine | Length |
 |------|-------|--------|--------|
@@ -39,85 +39,44 @@ not real data, and are labelled as such on screen.
 
 ## How it's built
 
+The pipeline (TTS, narration-synced scenes, assembly) is shared by every video
+in this repo and documented in the [top-level README][top]. Specific to this
+one:
+
 - **Narration** — `narration.py` holds the script, split into *beats* (one
-  audio clip each).
-- **TTS** — `tts.py` sends each beat to [ElevenLabs][el] (voice "Brian",
-  `eleven_multilingual_v2`, with neighbouring beats passed as
-  `previous_text`/`next_text` for continuous prosody). Clips are cached in
-  `audio/cache/` by a hash of text + voice + settings, so only edited beats are
-  re-synthesized. Writes `audio/<Scene>_<i>.mp3` and `audio/durations.json`.
-  The cache is committed, which saves the ElevenLabs credits; the per-scene
-  copies and `durations.json` are git-ignored, since `tts.py` rebuilds them
-  from the cache without calling the API.
+  audio clip each), plus the scene list and `CUE_VOICE = "brian"`: the
+  mid-beat cues in the scenes were timed against Brian's reading, and are
+  scaled per beat for the other voices.
 - **Animation** — [Manim Community][manim] scenes in `scenes_a.py` (Intro,
   JustTokens, SerialDepth) and `scenes_b.py` (Training, Dial, Closing).
-  `common.py` provides `VScene`, which syncs animation to narration:
-  `self.beat(i)` starts clip *i*, `self.at(t)` waits until *t* seconds into the
-  clip, and the next `beat()` pads out whatever audio remains. So the timing adjusts
-  automatically when narration changes. A beat that overruns its audio prints
-  `WARNING <Scene> beat overran audio`.
-- **Assembly** — `build.sh` concatenates the six 1080p60 renders, re-encodes
-  to H.264, and loudness-normalizes the audio (−16 LUFS). Manim's audio track
-  stops at the scene's last sound, up to ~2.5 s before its video does, so each
-  scene's audio is padded with silence to its video length before joining.
-  Without that padding the audio track has holes at scene boundaries, and some
-  players drop sound there until you seek.
-
-Fonts are Charter (prose) and Menlo (code), both stock macOS; no LaTeX needed.
+- **Audio** — `audio/cache-elevenlabs/` holds every ElevenLabs clip and is
+  committed, which saves the credits: rebuilding Brian's clips from it makes
+  no API calls. The per-voice clips in `audio/<voice>/` and the Kokoro cache
+  are git-ignored, since they regenerate for free.
 
 ## Rebuilding
 
-Needs `uv` and `ffmpeg`. The API key is read from `ELEVEN_LABS_API_KEY` in
-`../.env` (only text-to-speech permission is needed).
+From the repo root:
 
 ```sh
-uv run python tts.py                          # (re)synthesize changed beats
-uv run manim -ql scenes_a.py SerialDepth      # quick 480p15 preview of one scene
-uv run manim -qh scenes_a.py Intro JustTokens SerialDepth
-uv run manim -qh scenes_b.py Training Dial Closing
-./build.sh                                    # → thinking-mode-brian.mp4
+uv run python -m kit.tts_elevenlabs thinking-video brian   # Brian's clips, from the cache
+uv run kit/tts_kokoro.py thinking-video heart              # or a Kokoro voice
+uv run python -m kit.build thinking-video heart --render   # → thinking-video/thinking-mode-heart.mp4
 ```
 
-A full 1080p60 render of all six scenes takes a few minutes on an M1 Max.
+The ElevenLabs step reads `ELEVEN_LABS_API_KEY` from `../.env`, but only
+calls the API for beats that aren't cached. A full 1080p60 render of all six
+scenes takes a few minutes on an M1 Max.
 
-## Local narration with Kokoro
+## About the voices
 
-The Michael and Heart versions use [Kokoro-82M][kokoro], an open-weights
-(Apache 2.0) TTS model that runs locally. It's free and needs no API key.
-Everything is organised by voice name; for example, Heart:
-
-```sh
-uv run tts_kokoro.py af_heart                 # → audio-kokoro/heart/
-TTS_VOICE=heart uv run manim -qh --media_dir media-heart scenes_a.py Intro JustTokens SerialDepth
-TTS_VOICE=heart uv run manim -qh --media_dir media-heart scenes_b.py Training Dial Closing
-./build.sh heart                              # → thinking-mode-heart.mp4
-```
-
-Pass a full Kokoro voice id (`af_heart`) to `tts_kokoro.py`, and the short
-name after the underscore (`heart`) everywhere else. `TTS_VOICE` defaults to
-`brian` (the ElevenLabs narration in `audio/`), and `tts_kokoro.py` defaults to
-`am_michael`. The clip cache in `audio-kokoro/cache/` is shared between voices;
-the voice is part of each clip's cache key.
-
-- `tts_kokoro.py` declares its own dependencies inline (PEP 723), so `uv run`
-  builds a separate Python 3.12 environment for it, since Kokoro doesn't
-  support the project's Python yet. The first run downloads the model
-  (~330 MB) and a spaCy English model. After that it narrates ~5× faster than
-  real time on an M1 Max, so the whole script takes a couple of minutes.
-- Voices: `am_michael` is the closest stock match to ElevenLabs' "Brian".
+- Michael reads ~10% slower than Brian (8:29 vs 7:42), Heart about the same
+  (7:46). The animation follows each voice's own clip lengths.
+- `am_michael` is the closest stock Kokoro match to ElevenLabs' "Brian";
   `af_heart` is the highest-rated voice in Kokoro's own quality ratings, well
-  above its male voices. Others worth trying: `af_bella` (American female),
-  `am_fenrir`, `am_puck`, `bm_george` (British). The first letter of the id
-  selects the accent (`a` American, `b` British).
-- Pronunciation fixes go in `PRONOUNCE`, using Kokoro's `[word](/IPA/)`
-  syntax. Without that, "Qwen" comes out as the spelled-out letters "Q-wen".
-- Each voice reads at its own pace: Michael ~10% slower than Brian (8:29 vs
-  7:42), Heart about the same (7:46). `common.py` scales
-  the mid-beat animation cues by each beat's duration ratio against the
-  ElevenLabs clips, so the visuals stay on the right words. That means
-  `audio/durations.json` must exist; `uv run python tts.py` rebuilds it from
-  the committed cache without calling the API.
-- Everything Kokoro-related is git-ignored, since it all regenerates locally.
+  above its male voices.
+- Without a pronunciation hint, Kokoro reads "Qwen" as the spelled-out letters
+  "Q-wen"; the fix lives in `kit/tts_kokoro.py`.
 
 ## What it cost
 
@@ -146,6 +105,8 @@ permission needed to query usage. The ElevenLabs usage page shows the real
 remaining balance.
 
 [3b1b]: https://www.3blue1brown.com/
+[kit]: ../kit/
+[top]: ../README.md
 [bench]: ../../bench/README.md
 [merrill]: https://arxiv.org/abs/2310.07923
 [r1]: https://arxiv.org/abs/2501.12948

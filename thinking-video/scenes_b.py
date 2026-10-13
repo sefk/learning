@@ -1,4 +1,4 @@
-from common import *
+from kit.scene import *
 
 
 def squares(n, color, op=0.55, size=0.16, buff=0.05):
