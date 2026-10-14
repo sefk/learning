@@ -10,6 +10,14 @@ SCENES = {  # scene file -> scenes in it, in play order
     "scenes_a": ["Intro", "JustTokens", "SerialDepth"],
     "scenes_b": ["Training", "Dial", "Closing"],
 }
+CHAPTERS = {  # scene -> chapter title in the mp4
+    "Intro": "Same model, thinking on or off",
+    "JustTokens": "It's all one string of tokens",
+    "SerialDepth": "Why thinking helps: serial depth",
+    "Training": "Teaching a model to use its scratchpad",
+    "Dial": "Thinking as a dial",
+    "Closing": "Is the trace what the model really does?",
+}
 
 NARRATION = {
     "Intro": [

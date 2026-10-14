@@ -28,6 +28,9 @@ Each video directory has a `narration.py` with:
 - Optionally, `BEAT_GAP` (seconds of silence between beats, default 0.45),
   `KOKORO_SPEED` (default 1.0; lower is slower) and `PRONOUNCE` (extra
   Kokoro pronunciation hints), for pacing a video differently.
+- Optionally, `CHAPTERS` (scene → chapter title; every scene starts a
+  chapter in the mp4) and `PARTS` (part name → scenes, in play order) to
+  split a long video into `<SLUG>-<part>-<voice>.mp4` files.
 
 The steps, run from the repo root:
 
@@ -38,7 +41,8 @@ uv run python -m kit.build <video> heart --preview     # 480p15 renders to check
 uv run python -m kit.build <video> heart --render      # 1080p60 → <video>/<SLUG>-heart.mp4
 ```
 
-Without `--render`, `kit.build` just reassembles the existing renders.
+Without `--render`, `kit.build` just reassembles the existing renders. It
+prints each output's chapter timestamps, ready for a video description.
 
 ## The kit
 
