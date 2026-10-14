@@ -10,7 +10,7 @@ __pycache__/
 !*/audio/cache-elevenlabs/
 # Kokoro clips regenerate locally for free
 */audio/cache-kokoro/
-# final videos (<slug>-<voice>.mp4): published as GitHub Release assets, not committed
+# final videos (<slug>.mp4): published as GitHub Release assets, not committed
 */*.mp4
 
 # raw router traces (regenerable in under a minute)

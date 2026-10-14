@@ -8,14 +8,14 @@ from pathlib import Path
 
 from manim import *
 
-from kit.voices import EXT, audio_dir, engine, load_narration
+from kit.voices import DEFAULT_VOICE, EXT, audio_dir, engine, load_narration
 
 
 @cache
 def narration_timing(video_dir, voice):
     """Clip durations for this voice, and for the voice the cues were timed against.
 
-    The voice comes from TTS_VOICE (default: the video's CUE_VOICE). Mid-beat
+    The voice comes from TTS_VOICE (default: Heart). Mid-beat
     cue times (VScene.at) were tuned against CUE_VOICE's reading; other voices
     speak at a different pace, so cues are scaled per beat.
     """
@@ -65,7 +65,7 @@ class VScene(Scene):
     def setup(self):
         self._beat_end = None
         self._video_dir = Path(inspect.getfile(type(self))).resolve().parent
-        self._voice = os.environ.get("TTS_VOICE") or load_narration(self._video_dir).CUE_VOICE
+        self._voice = os.environ.get("TTS_VOICE") or DEFAULT_VOICE
         self._durations, self._cue_reference = narration_timing(self._video_dir, self._voice)
         narration = load_narration(self._video_dir)
         self._gap = getattr(narration, "BEAT_GAP", BEAT_GAP)

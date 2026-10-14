@@ -23,14 +23,15 @@ Each video directory has a `narration.py` with:
 
 - `NARRATION`: the script, split into *beats* per scene (one audio clip each).
 - `SCENES`: scene file → scene classes, in play order.
-- `SLUG`: the output name, `<SLUG>-<voice>.mp4`.
+- `SLUG`: the output name, `<SLUG>.mp4` in the default Heart voice
+  (`<SLUG>-<voice>.mp4` for any other).
 - `CUE_VOICE`: the voice the scenes' mid-beat cues were timed against.
 - Optionally, `BEAT_GAP` (seconds of silence between beats, default 0.45),
   `KOKORO_SPEED` (default 1.0; lower is slower) and `PRONOUNCE` (extra
   Kokoro pronunciation hints), for pacing a video differently.
 - Optionally, `CHAPTERS` (scene → chapter title; every scene starts a
   chapter in the mp4) and `PARTS` (part name → scenes, in play order) to
-  split a long video into `<SLUG>-<part>-<voice>.mp4` files.
+  split a long video into `<SLUG>-<part>.mp4` files.
 
 The steps, run from the repo root:
 
@@ -38,7 +39,7 @@ The steps, run from the repo root:
 uv run python -m kit.tts_elevenlabs <video> brian      # or:
 uv run kit/tts_kokoro.py <video> heart                 # → <video>/audio/<voice>/
 uv run python -m kit.build <video> heart --preview     # 480p15 renders to check scenes
-uv run python -m kit.build <video> heart --render      # 1080p60 → <video>/<SLUG>-heart.mp4
+uv run python -m kit.build <video> heart --render      # 1080p60 → <video>/<SLUG>.mp4
 ```
 
 Without `--render`, `kit.build` just reassembles the existing renders. It

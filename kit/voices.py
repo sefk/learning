@@ -13,11 +13,18 @@ VOICES = {
     "heart": ("kokoro", "af_heart"),  # American female
 }
 
+DEFAULT_VOICE = "heart"  # final videos are named without a voice suffix
+
 EXT = {"elevenlabs": ".mp3", "kokoro": ".wav"}
 
 
 def engine(voice):
     return VOICES[voice][0]
+
+
+def output_name(stem, voice):
+    """<stem>.mp4 for the default voice, <stem>-<voice>.mp4 for any other."""
+    return f"{stem}.mp4" if voice == DEFAULT_VOICE else f"{stem}-{voice}.mp4"
 
 
 def audio_dir(video_dir, voice):

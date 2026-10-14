@@ -3,12 +3,12 @@
     uv run python -m kit.build <video-dir> [voice] [--render] [--preview]
 
 Scenes come from SCENES in <video>/narration.py; renders go to
-<video>/media/<voice>/ and the result to <video>/<SLUG>-<voice>.mp4. The voice
-defaults to the video's CUE_VOICE. Without --render, existing renders are
+<video>/media/<voice>/ and the result to <video>/<SLUG>.mp4. The voice
+defaults to Heart; any other voice's output is named <SLUG>-<voice>.mp4. Without --render, existing renders are
 joined as they are. --preview renders at 480p15 and only for checking scenes.
 
 A video split into parts lists them in PARTS (part name -> scenes, in play
-order), and each part goes to <SLUG>-<part>-<voice>.mp4. Every scene starts a
+order), and each part goes to <SLUG>-<part>.mp4. Every scene starts a
 chapter, titled from CHAPTERS (scene -> title); the chapter list is written
 into the mp4 and printed as timestamps for a video description.
 
@@ -24,7 +24,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from kit.voices import load_narration
+from kit.voices import DEFAULT_VOICE, load_narration, output_name
 
 
 def render(video, voice, files, quality):
@@ -111,7 +111,7 @@ def main():
     flags = {a for a in sys.argv[1:] if a.startswith("--")}
     video = Path(args[0])
     narration = load_narration(video)
-    voice = args[1] if len(args) > 1 else narration.CUE_VOICE
+    voice = args[1] if len(args) > 1 else DEFAULT_VOICE
 
     if "--preview" in flags:
         render(video, voice, narration.SCENES, "-ql")
@@ -123,11 +123,11 @@ def main():
     chapters = getattr(narration, "CHAPTERS", {})
     parts = getattr(narration, "PARTS", None)
     if parts is None:
-        join(video, voice, [(f, s) for s, f in file_of.items()], chapters, video / f"{narration.SLUG}-{voice}.mp4")
+        join(video, voice, [(f, s) for s, f in file_of.items()], chapters, video / output_name(narration.SLUG, voice))
         return
     for part, scenes in parts.items():
         join(video, voice, [(file_of[s], s) for s in scenes], chapters,
-             video / f"{narration.SLUG}-{part}-{voice}.mp4")
+             video / output_name(f"{narration.SLUG}-{part}", voice))
 
 
 if __name__ == "__main__":

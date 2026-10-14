@@ -9,8 +9,8 @@ quoted.
 
 | File | Part | Voice | Length |
 |------|------|-------|--------|
-| `local-inference-1-heart.mp4` | 1. Mixture of experts | Heart | 12:39 |
-| `local-inference-2-heart.mp4` | 2. Quantization and context | Heart | 12:55 |
+| `local-inference-1.mp4` | 1. Mixture of experts | Heart | 12:39 |
+| `local-inference-2.mp4` | 2. Quantization and context | Heart | 12:55 |
 
 Heart (`af_heart`) is an American female voice from [Kokoro-82M][kokoro], run
 locally. Every scene is a chapter in the mp4.
