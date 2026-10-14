@@ -2,7 +2,6 @@ from kit.scene import *
 
 from data import MATH, MEASURED
 from scenes_a import bar
-from scenes_b import chip, layer_pattern
 
 KIB = 1024
 
@@ -11,37 +10,8 @@ class KVCache(VScene):
     def construct(self):
         moe, dense = MATH["moe"], MATH["dense"]
 
-        # Beat 0: attention needs every earlier key and value
+        # Beat 0: it lives next to the weights and grows
         self.beat(0)
-        words = ["The", "keeper", "watched", "the", "boat", "round", "the", "point"]
-        toks = VGroup(*[token_box(w, WHITE, 22) for w in words]).arrange(RIGHT, buff=0.18).move_to(UP * 0.6)
-        self.play(FadeIn(toks, lag_ratio=0.1), run_time=1.2)
-        self.cue("attention compares")
-        new = toks[-1]
-        self.play(new.animate.set_color(C_YELLOW), run_time=0.4)
-        arcs = VGroup(*[CurvedArrow(new.get_top() + UP * 0.05, t.get_top() + UP * 0.05, angle=TAU / 5,
-                                    color=C_YELLOW, stroke_width=2, tip_length=0.15) for t in toks[:-1]])
-        self.play(LaggedStart(*[Create(a) for a in arcs], lag_ratio=0.1), run_time=1.5)
-        self.cue("a key, and a value")
-        kv = VGroup()
-        for t in toks[:-1]:
-            k = Rectangle(width=0.5, height=0.28, stroke_width=0, fill_color=C_TEAL, fill_opacity=0.8)
-            v = Rectangle(width=0.5, height=0.28, stroke_width=0, fill_color=C_PURPLE, fill_opacity=0.8)
-            kv.add(VGroup(k, v).arrange(DOWN, buff=0.05).next_to(t, DOWN, buff=0.3))
-        legend = VGroup(chip("key", C_TEAL, 20), chip("value", C_PURPLE, 20)).arrange(RIGHT, buff=0.3) \
-            .next_to(kv, DOWN, buff=0.4)
-        self.play(FadeIn(kv, lag_ratio=0.1), FadeIn(legend), run_time=1.2)
-        self.cue("Recomputing them")
-        redo = T("recompute every time: the whole prompt again, per token", 24, C_RED).to_edge(DOWN, buff=1.2)
-        self.play(FadeIn(redo), run_time=0.6)
-        self.cue("So they're computed once")
-        box = SurroundingRectangle(kv, buff=0.15, color=C_YELLOW)
-        name = T("KV cache", 34, C_YELLOW).next_to(box, LEFT, buff=0.3)
-        self.play(FadeOut(redo), Create(box), FadeIn(name), run_time=1.0)
-
-        # Beat 1: it lives next to the weights and grows
-        self.beat(1)
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         mem = Rectangle(width=11, height=0.8, stroke_color=C_GREY, stroke_width=1.5).move_to(DOWN * 0.2)
         ml = T("64 GB unified memory", 22, C_GREY).next_to(mem, UP, buff=0.15).align_to(mem, LEFT)
         w = Rectangle(width=11 * 19.5 / 64, height=0.8, stroke_width=0, fill_color=C_BLUE, fill_opacity=0.7) \
@@ -57,10 +27,10 @@ class KVCache(VScene):
         cl = T("KV cache", 20, C_YELLOW).next_to(grown, DOWN, buff=0.15)
         self.play(Transform(cache, grown), FadeIn(cl), run_time=2.5, rate_func=linear)
 
-        # Beat 2: two kilobytes per layer per token
-        self.beat(2)
+        # Beat 1: two kilobytes per layer per token
+        self.beat(1)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        eq = VGroup(T("2 heads", 32), T("×", 32, C_GREY), T("256 numbers", 32), T("×", 32, C_GREY),
+        eq = VGroup(T("2 shared heads", 32), T("×", 32, C_GREY), T("256 numbers", 32), T("×", 32, C_GREY),
                     T("2 bytes", 32), T("×", 32, C_GREY), T("(K + V)", 32)).arrange(RIGHT, buff=0.2)
         res = T("= 2 KB per attention layer, per token", 36, C_YELLOW)
         VGroup(eq, res).arrange(DOWN, buff=0.5)
@@ -69,40 +39,8 @@ class KVCache(VScene):
         self.cue("That's two kilobytes")
         self.play(FadeIn(res, shift=UP * 0.2), run_time=0.8)
 
-        # Beat 3: DeltaNet layers keep a fixed state
-        self.beat(3)
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        pattern = layer_pattern("DDDA" * 10, w=0.24, h=0.5).move_to(UP * 2.2)
-        key = VGroup(chip("full attention: 10", C_TEAL, 20), chip("Gated DeltaNet: 30", C_PURPLE, 20)) \
-            .arrange(RIGHT, buff=0.4).next_to(pattern, DOWN, buff=0.3)
-        self.play(FadeIn(pattern, lag_ratio=0.02), FadeIn(key), run_time=1.2)
-        self.cue("The other thirty")
-        # growing columns under attention layers, fixed squares under DeltaNet layers
-        self.cols = VGroup()
-        states = VGroup()
-        for i, cellm in enumerate(pattern):
-            if (i + 1) % 4 == 0:
-                col = Rectangle(width=0.2, height=0.05, stroke_width=0, fill_color=C_TEAL, fill_opacity=0.8)
-                self.cols.add(col.move_to([cellm.get_x(), 0.9, 0], aligned_edge=UP))
-            else:
-                states.add(Square(0.2, stroke_width=0, fill_color=C_PURPLE, fill_opacity=0.8)
-                           .move_to([cellm.get_x(), 0.9, 0], aligned_edge=UP))
-        self.play(FadeIn(states), FadeIn(self.cols), run_time=0.6)
-        counter = T("tokens: 10", 24, C_GREY).to_edge(DOWN, buff=0.8)
-        self.add(counter)
-        self.cue("Each one keeps")
-        tall = [Rectangle(width=0.2, height=2.6, stroke_width=0, fill_color=C_TEAL, fill_opacity=0.8)
-                .move_to(c.get_top(), aligned_edge=UP) for c in self.cols]
-        self.play(*[Transform(c, t) for c, t in zip(self.cols, tall)],
-                  Transform(counter, T("tokens: 200,000", 24, C_GREY).to_edge(DOWN, buff=0.8)),
-                  run_time=4.0, rate_func=linear)
-        self.cue("Together those states")
-        st = T(f"30 fixed states: {moe['deltanet_state_mb']:.0f} MB, at any length", 26, C_PURPLE) \
-            .to_edge(DOWN, buff=1.4)
-        self.play(FadeIn(st), run_time=0.6)
-
-        # Beat 4: 20 KB per token; vs Qwen3-30B-A3B
-        self.beat(4)
+        # Beat 2: 20 KB per token; vs Qwen3-30B-A3B
+        self.beat(2)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         title = T("KV cache per token", 28, C_GREY).to_edge(UP, buff=0.5)
         q3 = 48 * 2 * 4 * 128 * 2  # Qwen3-30B-A3B: 48 full-attention layers, 4 KV heads of 128
@@ -115,7 +53,8 @@ class KVCache(VScene):
             lab = T(name, 24, c).next_to(b, LEFT, buff=0.25)
             val = T(f"{v / KIB:.0f} KB", 24, c).next_to(b, RIGHT, buff=0.2)
             bars.add(VGroup(b, lab, val))
-        self.play(FadeIn(title), run_time=0.4)
+        only = T("only 10 of the 40 layers keep one", 22, C_GREY).next_to(title, DOWN, buff=0.15)
+        self.play(FadeIn(title), FadeIn(only), run_time=0.6)
         self.cue("So your mixture")
         self.play(GrowFromEdge(bars[0][0], LEFT), FadeIn(bars[0][1]), FadeIn(bars[0][2]), run_time=0.8)
         self.cue("At its full window")
@@ -123,22 +62,17 @@ class KVCache(VScene):
         self.play(FadeIn(full), run_time=0.7)
         self.cue("Qwen three's thirty B")
         self.play(GrowFromEdge(bars[2][0], LEFT), FadeIn(bars[2][1]), FadeIn(bars[2][2]), run_time=0.8)
-        self.cue("The summaries are lossy")
-        lossy = T("the trade: summaries are lossy, so 1 layer in 4 keeps exact attention", 24, C_GREY) \
-            .to_edge(DOWN, buff=0.4)
-        self.play(FadeIn(lossy), run_time=0.6)
-        self.bars = bars
 
-        # Beat 5: the dense model
-        self.beat(5)
+        # Beat 3: the dense model
+        self.beat(3)
         self.play(GrowFromEdge(bars[1][0], LEFT), FadeIn(bars[1][1]), FadeIn(bars[1][2]), run_time=0.8)
         self.cue("At full length")
         dfull = T(f"dense at full length: {dense['kv_gb_at_262k']} GB of cache, more than its weights", 26, C_BLUE) \
             .move_to(DOWN * 2.6)
-        self.play(FadeOut(lossy), FadeIn(dfull), run_time=0.7)
+        self.play(FadeIn(dfull), run_time=0.7)
 
-        # Beat 6: decode reads the cache too
-        self.beat(6)
+        # Beat 4: decode reads the cache too
+        self.beat(4)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         ax = Axes(x_range=[0, 262144, 65536], y_range=[0, 8, 2], x_length=9, y_length=4.2, tips=False,
                   axis_config={"color": C_GREY, "include_ticks": False}).move_to(DOWN * 0.3)

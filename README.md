@@ -7,7 +7,7 @@ its script, scenes and a README; the tooling they share lives in `kit/`.
 | Video | About |
 |-------|-------|
 | [`thinking-video`][thinking] | How "thinking" (reasoning) mode works in modern LLMs |
-| [`inference-video`][inference] | Running models locally: memory bandwidth, mixture of experts, quantization, the KV cache |
+| [`inference-video`][inference] | Running models locally, in two parts: memory bandwidth and mixture of experts; quantization, attention and the KV cache |
 
 The rendered videos aren't committed (H.264 doesn't delta-compress, so every
 re-render would add a full copy to git history). They're published as GitHub

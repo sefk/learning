@@ -128,7 +128,8 @@ class Bits(VScene):
         # Beat 5: the bench: 4 vs 8 bits
         self.beat(5)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        title = T("MMLU, your bench: 4-bit vs 8-bit, 500 questions each", 24, C_GREY).to_edge(UP, buff=0.5)
+        title = T("MMLU (57-subject exam), your benchmarks: 4-bit vs 8-bit, 500 questions per model", 24, C_GREY) \
+            .to_edge(UP, buff=0.5)
         pairs = [("3.6-27B", 86.2, 85.8), ("3.6-35B-A3B", 83.8, 84.8), ("3.8-27B", 78.8, 81.4)]
         g = VGroup()
         for i, (name, a, b) in enumerate(pairs):
@@ -158,7 +159,7 @@ class TwoBits(VScene):
         outs = VGroup(*[chip(b, C_PURPLE, 26) for b in ("4-bit", "3-bit", "2-bit")]).arrange(DOWN, buff=0.3) \
             .move_to(RIGHT * 0.5 + UP * 0.5)
         arrows = VGroup(*[Arrow(src.get_right(), o.get_left(), buff=0.15, color=C_GREY) for o in outs])
-        test = T("→ 500 MMLU questions (your bench's set), thinking off", 24, C_GREY).move_to(DOWN * 1.8)
+        test = T("→ 500 MMLU questions (your benchmarks' set), thinking off", 24, C_GREY).move_to(DOWN * 1.8)
         self.cue("I took the")
         self.play(FadeIn(src), run_time=0.6)
         self.cue("re-rounded it")

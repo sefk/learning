@@ -55,7 +55,8 @@ class Hook(VScene):
         # Beat 2: same quality
         self.beat(2)
         self.play(*[FadeOut(m) for m in self.mobjects if m not in (mac, dense, moe)], run_time=0.6)
-        ql = T("knowledge + math score (MMLU + GSM8K), 95% intervals", 22, C_GREY).move_to(DOWN * 0.6)
+        ql = VGroup(T("MMLU: multiple choice, 57 subjects   ·   GSM8K: grade-school math", 22, C_GREY),
+                    T("combined score, 95% intervals", 20, C_GREY)).arrange(DOWN, buff=0.1).move_to(DOWN * 0.55)
         ax = NumberLine(x_range=[84, 94, 2], length=9, color=C_GREY).move_to(DOWN * 2.6)
         ax.add(*[T(f"{v}%", 20, C_GREY).next_to(ax.n2p(v), DOWN, buff=0.2) for v in range(84, 95, 2)])
         self.play(FadeIn(ql), Create(ax), run_time=0.8)
@@ -75,14 +76,20 @@ class Hook(VScene):
         # Beat 3: roadmap
         self.beat(3)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
+        head = T("running a model locally", 30, C_GREY).to_edge(UP, buff=0.8)
+        self.play(FadeIn(head), run_time=0.6)
         items = ["what limits speed", "what an expert actually is", "what quantization costs",
                  "where the context goes"]
         colors = [C_TEAL, C_GOLD, C_PURPLE, C_BLUE]
         road = VGroup(*[VGroup(Dot(color=c, radius=0.1), T(s, 34)).arrange(RIGHT, buff=0.35)
                         for s, c in zip(items, colors)]).arrange(DOWN, aligned_edge=LEFT, buff=0.45)
-        for phrase, item in zip(["what limits its speed", "what a mixture", "what quantization", "where all your"], road):
+        parts = [T("part 1", 26, C_GREY).next_to(road[:2], LEFT, buff=0.8),
+                 T("part 2", 26, C_GREY).next_to(road[2:], LEFT, buff=0.8)]
+        for i, (phrase, item) in enumerate(zip(["what limits its speed", "what a mixture", "what quantization",
+                                                "where all your"], road)):
             self.cue(phrase)
-            self.play(FadeIn(item, shift=RIGHT * 0.3), run_time=0.6)
+            extra = [FadeIn(parts[i // 2])] if i % 2 == 0 else []
+            self.play(FadeIn(item, shift=RIGHT * 0.3), *extra, run_time=0.6)
         self.end()
 
     def stream(self, lane, rate, color, seconds):
@@ -117,6 +124,9 @@ class MemoryWall(VScene):
         self.play(LaggedStart(*[r.animate.set_fill(C_YELLOW, opacity=0.8) for r in rows], lag_ratio=0.15),
                   run_time=2.5)
         self.play(grid.animate.set_fill(C_BLUE, opacity=0.35), run_time=0.5)
+        self.cue("carried to the GPU")
+        gpu_c = T("graphics processor:\ndoes the arithmetic", 20, C_GREY).next_to(gpu, DOWN, buff=0.2)
+        self.play(FadeIn(gpu_c), run_time=0.6)
 
         # Beat 1: bytes / bandwidth = ceiling
         self.beat(1)

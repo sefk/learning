@@ -305,7 +305,9 @@ class MoESpeed(VScene):
         # Beat 5: the catch, on code
         self.beat(5)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        title = T("LiveCodeBench, 175 problems, 16k-token budget (your bench)", 26, C_GREY).to_edge(UP, buff=0.6)
+        title = VGroup(T("LiveCodeBench: 175 recent coding-contest problems", 26, C_GREY),
+                       T("16k-token budget · your benchmarks", 22, C_GREY)).arrange(DOWN, buff=0.1) \
+            .to_edge(UP, buff=0.5)
         self.play(FadeIn(title), run_time=0.5)
         self.cue("the dense model solved")
         cd = bar(60.6, 70, 8, C_BLUE, height=0.6).move_to(UP * 1.0).align_to(LEFT * 4, LEFT)
@@ -330,6 +332,23 @@ def qwen_row(name, date, facts, color):
     head = VGroup(M(name, 24, color), T(date, 20, C_GREY)).arrange(RIGHT, buff=0.3)
     body = T(facts, 22)
     return VGroup(head, body).arrange(DOWN, aligned_edge=LEFT, buff=0.1)
+
+
+def speed_formula():
+    return VGroup(T("tokens/s", 36), T("≈", 36, C_GREY), T("bandwidth", 36, C_BLUE), T("÷", 36, C_GREY),
+                  T("bytes per token", 36, C_YELLOW)).arrange(RIGHT, buff=0.25).to_edge(UP, buff=0.8)
+
+
+def lever_list():
+    """Part one's lever (done) and part two's two topics, for the hand-off between parts."""
+    levers = VGroup(
+        VGroup(T("✓", 30, C_GREEN), T("touch fewer weights per token: mixture of experts", 30, C_GOLD)),
+        VGroup(T("→", 30, C_GREY), T("make each weight smaller: quantization", 30, C_PURPLE)),
+        VGroup(T("→", 30, C_GREY), T("the memory that grows as you talk: context", 30, C_BLUE)),
+    )
+    for r in levers:
+        r.arrange(RIGHT, buff=0.3)
+    return levers.arrange(DOWN, aligned_edge=LEFT, buff=0.5).move_to(DOWN * 0.3)
 
 
 def layer_pattern(kinds, w=0.22, h=0.45):
@@ -399,14 +418,14 @@ class QwenLineage(VScene):
         self.beat(3)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         title = T("27B, Qwen3.6 → Qwen3.8", 28, C_GREY).to_edge(UP, buff=0.5)
-        rows = [("SWE-bench Pro", 53.5, 61.7, "Qwen model card"),
-                ("Terminal Bench 2.1", 63.4, 73.0, "Qwen model card"),
-                ("MMLU, 4-bit", 86.2, 78.8, "your bench")]
+        rows = [("SWE-bench Pro", 53.5, 61.7, "fix real issues in real repos · Qwen model card"),
+                ("Terminal Bench 2.1", 63.4, 73.0, "agent work at a command line · Qwen model card"),
+                ("MMLU, 4-bit", 86.2, 78.8, "57-subject exam · your benchmarks")]
         group = VGroup()
         for i, (name, a, b, src) in enumerate(rows):
             y = 1.4 - i * 1.4
-            ba = bar(a, 100, 6, C_BLUE, height=0.32).move_to([0, y + 0.2, 0]).align_to(LEFT * 1.5, LEFT)
-            bb = bar(b, 100, 6, C_GREEN, height=0.32).move_to([0, y - 0.2, 0]).align_to(LEFT * 1.5, LEFT)
+            ba = bar(a, 100, 5.6, C_BLUE, height=0.32).move_to([0, y + 0.2, 0]).align_to(ORIGIN, LEFT)
+            bb = bar(b, 100, 5.6, C_GREEN, height=0.32).move_to([0, y - 0.2, 0]).align_to(ORIGIN, LEFT)
             la = T(f"{a}", 20, C_BLUE).next_to(ba, RIGHT, buff=0.15)
             lb = T(f"{b}", 20, C_GREEN).next_to(bb, RIGHT, buff=0.15)
             name_l = VGroup(T(name, 24), T(src, 18, C_GREY)).arrange(DOWN, aligned_edge=RIGHT, buff=0.05) \
@@ -415,35 +434,54 @@ class QwenLineage(VScene):
         key = VGroup(chip("3.6", C_BLUE, 20), chip("3.8", C_GREEN, 20)).arrange(RIGHT, buff=0.3) \
             .to_edge(DOWN, buff=0.4)
         self.play(FadeIn(title), FadeIn(key), run_time=0.5)
-        for phrase, g in zip(["SWE-bench Pro", "Terminal Bench", "Your bench measured"], group):
+        for phrase, g in zip(["SWE-bench Pro", "Terminal Bench", "benchmarks measured"], group):
             self.cue(phrase)
             self.play(FadeIn(g[4]), GrowFromEdge(g[0], LEFT), GrowFromEdge(g[1], LEFT), FadeIn(g[2]), FadeIn(g[3]),
                       run_time=0.9)
 
-        # Beat 4: the 3.8 lineup
+        # Beat 4: the 3.8 lineup, one row per model on a log axis of parameters
         self.beat(4)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        title = T("open-weight sizes, total parameters (log scale)", 24, C_GREY).to_edge(UP, buff=0.5)
-        ax = NumberLine(x_range=[1, 3.6, 1], length=10, color=C_GREY).move_to(DOWN * 2.6)
-        ax.add(*[T(lab, 20, C_GREY).next_to(ax.n2p(v), DOWN, buff=0.2)
-                 for v, lab in ((1, "10 B"), (2, "100 B"), (3, "1 T"))])
-        limit = ax.n2p(np.log10(64 / 0.5625))
-        mem = DashedLine(limit, limit + UP * 3.6, color=C_RED)
-        meml = T("← fits in 64 GB at 4-bit", 20, C_RED).next_to(mem, UP, buff=0.1)
-        models = [("3.6-27B", 27, 1.3, C_BLUE), ("3.6-35B-A3B", 35, -0.2, C_GOLD),
-                  ("3.8-27B", 27, -1.7, C_GREEN), ("3.8 Flash ~180B-A6B", 180, 0.2, C_GREEN),
-                  ("3.8-2.4T-A95B", 2400, 0.2, C_GREEN)]
-        dots = VGroup()
-        for name, size, y, c in models:
-            d = Dot(ax.n2p(np.log10(size)) + UP * (y + 2.6), color=c, radius=0.1)
-            dots.add(VGroup(d, T(name, 22, c).next_to(d, UP, buff=0.12)))
-        self.play(FadeIn(title), Create(ax), Create(mem), FadeIn(meml), run_time=1.0)
-        self.play(FadeIn(dots[0]), FadeIn(dots[1]), FadeIn(dots[2]), run_time=0.8)
+        title = T("Qwen open-weight models: parameters, log scale", 26, C_GREY).to_edge(UP, buff=0.4)
+        x0, per_decade = -2.0, 1.9
+
+        def x(b):  # billions of parameters -> x position
+            return x0 + np.log10(b) * per_decade
+
+        axis = Line([x0, -2.1, 0], [x(3000), -2.1, 0], color=C_GREY, stroke_width=2)
+        ticks = VGroup(*[VGroup(Line([x(v), -2.1, 0], [x(v), -2.2, 0], color=C_GREY),
+                                T(lab, 20, C_GREY).move_to([x(v), -2.45, 0]))
+                         for v, lab in ((1, "1 B"), (10, "10 B"), (100, "100 B"), (1000, "1 T"))])
+        key = VGroup(chip("total parameters", C_DIM, 18), chip("active per token", C_YELLOW, 18)) \
+            .arrange(RIGHT, buff=0.3).next_to(title, DOWN, buff=0.25)
+        models = [("3.6-27B", 27, 27, C_BLUE), ("3.6-35B-A3B", 35, 3, C_GOLD), ("3.8-27B", 27, 27, C_GREEN),
+                  ("3.8-Flash-Next", 180, 6, C_GREEN), ("3.8-2.4T-A95B", 2400, 95, C_GREEN)]
+        rows = VGroup()
+        for i, (name, total, active, c) in enumerate(models):
+            y = 1.5 - i * 0.72
+            whole = Rectangle(width=x(total) - x0, height=0.36, stroke_width=0, fill_color=c, fill_opacity=0.3) \
+                .move_to([x0, y, 0], aligned_edge=LEFT)
+            act = Rectangle(width=x(active) - x0, height=0.36, stroke_width=0, fill_color=c, fill_opacity=0.95) \
+                .move_to([x0, y, 0], aligned_edge=LEFT)
+            label = M(name, 22, c).next_to(whole, LEFT, buff=0.25)
+            nums = f"{total:,} B" if total == active else f"{total:,} B, {active} B active"
+            if name == "3.8-Flash-Next":
+                nums = "~180 B, 6 B active"
+            val = T(nums, 20, c).next_to(whole, RIGHT, buff=0.15)
+            rows.add(VGroup(whole, act, label, val))
+        limit = x(64 / 0.5625)  # 4.5 bits per weight
+        moe_y = rows[1].get_y()  # leave a gap where the 35B row's label crosses the line
+        mem = VGroup(DashedLine([limit, -2.1, 0], [limit, moe_y - 0.22, 0], color=C_RED),
+                     DashedLine([limit, moe_y + 0.22, 0], [limit, 1.95, 0], color=C_RED))
+        meml = T("← fits in 64 GB at 4-bit", 20, C_RED).next_to(mem.get_top(), RIGHT, buff=0.1)
+        self.play(FadeIn(title), FadeIn(key), Create(axis), FadeIn(ticks), run_time=1.0)
+        self.play(LaggedStart(*[FadeIn(r) for r in rows[:3]], lag_ratio=0.3), run_time=1.2)
         self.cue("The open mixture models jumped")
-        self.play(FadeIn(dots[3]), FadeIn(dots[4]), run_time=0.8)
-        spec = T("both: 512 experts, 10 active + 1 shared", 24, C_GREEN).next_to(VGroup(dots[3], dots[4]), DOWN,
-                                                                                 buff=0.5).shift(RIGHT * 0.8)
+        self.play(LaggedStart(*[FadeIn(r) for r in rows[3:]], lag_ratio=0.3), run_time=1.0)
+        spec = T("both: 512 experts, 10 active + 1 shared", 22, C_GREEN).to_edge(DOWN, buff=0.35)
         self.play(FadeIn(spec), run_time=0.6)
+        self.cue("Neither fits")
+        self.play(Create(mem), FadeIn(meml), run_time=0.8)
 
         # Beat 5: Flash previews sparse attention and n-gram embeddings
         self.beat(5)
@@ -469,4 +507,18 @@ class QwenLineage(VScene):
         cost = VGroup(T("memory: lots", 26, C_RED), T("compute: almost none", 26, C_GREEN)) \
             .arrange(DOWN, aligned_edge=LEFT, buff=0.2).move_to(DOWN * 1.6 + RIGHT * 3.2)
         self.play(FadeIn(cost), run_time=0.8)
-        self.end()
+
+        # Beat 6: end of part one
+        self.beat(6)
+        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
+        f, levers = speed_formula(), lever_list()
+        self.play(FadeIn(f), FadeIn(levers[0]), run_time=1.0)
+        self.cue("reads about a tenth")
+        tenth = T("your model: 2.95 B of 34.7 B parameters per token", 24, C_GOLD).next_to(f, DOWN, buff=0.4)
+        self.play(FadeIn(tenth), run_time=0.6)
+        self.cue("In part two")
+        brace = Brace(levers[1:], RIGHT, color=C_GREY)
+        p2 = T("part two", 26, C_GREY).next_to(brace, RIGHT, buff=0.2)
+        self.play(FadeIn(levers[1:], shift=RIGHT * 0.2, lag_ratio=0.4), GrowFromCenter(brace), FadeIn(p2),
+                  run_time=1.2)
+        self.end(tail=2.0)
