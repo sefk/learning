@@ -124,9 +124,6 @@ class MemoryWall(VScene):
         self.play(LaggedStart(*[r.animate.set_fill(C_YELLOW, opacity=0.8) for r in rows], lag_ratio=0.15),
                   run_time=2.5)
         self.play(grid.animate.set_fill(C_BLUE, opacity=0.35), run_time=0.5)
-        self.cue("carried to the GPU")
-        gpu_c = T("graphics processor:\ndoes the arithmetic", 20, C_GREY).next_to(gpu, DOWN, buff=0.2)
-        self.play(FadeIn(gpu_c), run_time=0.6)
 
         # Beat 1: bytes / bandwidth = ceiling
         self.beat(1)

@@ -54,10 +54,8 @@ NARRATION = {
         "bigger: thirty-five billion parameters. And it writes sixty-seven tokens "
         "per second. Three and a half times faster.",
         "On two standard exams, they score within a point and a half of each "
-        "other, which is inside the noise. MMLU, short for Massive Multitask "
-        "Language Understanding, is multiple-choice questions across "
-        "fifty-seven subjects. GSM8K is grade-school math word problems. So "
-        "the bigger model is faster, and about as good. How?",
+        "other, which is inside the noise. So the bigger model is faster, and "
+        "about as good. How?",
         "Answering that takes us through most of what matters about running a "
         "model locally. In this first part: what limits its speed, and what a "
         "mixture of experts actually is. In part two: what quantization really "
@@ -67,8 +65,7 @@ NARRATION = {
         "Start with what the machine does to produce one token. The model runs "
         "a forward pass: every layer, top to bottom. And in that pass, every "
         "weight in a dense model takes part, so every weight has to be read "
-        "from memory and carried to the GPU, the graphics processor that does "
-        "the arithmetic.",
+        "from memory and carried to the GPU.",
         "At four bits, the dense model's weights come to about fourteen and a "
         "half gigabytes per token. This machine's memory can move, at best, "
         "four hundred gigabytes per second. Divide, and you get a hard "
@@ -123,7 +120,7 @@ NARRATION = {
         "specialists. One for chemistry, one for law, one for poetry. To find "
         "out, I hooked the routers of your four-bit model and fed it six "
         "kinds of text: Python, an English short story, math, Chinese, JSON, "
-        "which is structured data for programs, and French prose. Then I recorded every choice, at every layer.",
+        "and French prose. Then I recorded every choice, at every layer.",
         "In the first layer, the experts sort by the shape of a token, not "
         "its meaning. One expert takes almost nothing but spaces. Another "
         "takes newlines. Whatever the text is about, those tokens go to the "
@@ -201,10 +198,9 @@ NARRATION = {
         "eight twenty-seven B models on your disk are identical, field for "
         "field. Same layers, same widths, same attention. Different weights.",
         "What the new training aimed at shows in the model card Qwen published: big "
-        "gains on coding agent tasks. On SWE-bench Pro, where an agent has to "
-        "fix real issues in real code repositories, from fifty-three and a "
-        "half to sixty-one point seven. On Terminal Bench, which tests work "
-        "done at a command line, from sixty-three to seventy-three. Your "
+        "gains on coding agent tasks. On SWE-bench Pro, from fifty-three and a "
+        "half to sixty-one point seven. On Terminal Bench, from sixty-three "
+        "to seventy-three. Your "
         "benchmarks measured the other side: seven point four lower on MMLU. "
         "Training for one thing can cost another.",
         "Three point eight also changed the lineup. There is no successor to "
@@ -258,8 +254,7 @@ NARRATION = {
         "routers are kept at eight bits. They're tiny, and a small error "
         "there sends a token to the wrong experts entirely.",
         "Your benchmarks already settled four versus eight bits. Across "
-        "fifteen hundred questions per precision from MMLU, the fifty-seven "
-        "subject exam from part one, eight bits scored one point "
+        "fifteen hundred questions per precision from MMLU, eight bits scored one point "
         "higher, with a standard error of one point four. That's "
         "indistinguishable from zero. Four-bit rounding error is simply "
         "smaller than the differences that decide answers.",
