@@ -44,6 +44,7 @@ PRONOUNCE = {
     "overhead": "ˈOvəɹhˌɛd",  # the noun, not over-HEAD
     "A three B": "ˈA θɹˈi bˈi",  # the letter, not the article ("uh three B")
     "SWE-bench": "swˈibˌɛnʧ",  # "swee", not spelled out
+    "GPT-OSS": "ʤˌipˌitˈi ˈOˌɛsˈɛs",  # stress the O, or it blurs into "USS"
     "kilobyte": "kˈɪləbˌIt",  # KIL-o, not KEE-lo
     "kilobytes": "kˈɪləbˌIts",
 }
