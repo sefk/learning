@@ -163,6 +163,16 @@ NARRATION = {
         "route, gather eight experts, run nine tiny networks, blend. Small "
         "operations can't keep the memory system busy, so the time goes to "
         "bookkeeping rather than to moving bytes.",
+        "Your benchmarks now include a second mixture model that shows this: "
+        "OpenAI's GPT-OSS, with twenty billion parameters. It's built the other "
+        "way: thirty-two wide experts with four active, and twenty-four layers "
+        "instead of forty. Per token, it reads more bytes than your Qwen model, "
+        "two point six gigabytes against one point seven. Yet it writes "
+        "eighty-six tokens per second, against sixty-seven. It reaches more "
+        "than half its ceiling, where your Qwen model reaches about a quarter. "
+        "Fewer, bigger operations keep the memory busy. Its attention is "
+        "different too, so this isn't a controlled experiment, but it points "
+        "the same way.",
         "Your benchmarks caught this from the other side. Going from four bits to "
         "eight, which doubles the bytes, makes the dense model one point eight "
         "seven times slower. That's almost exactly double, as a "

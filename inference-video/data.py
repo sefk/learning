@@ -16,3 +16,4 @@ ROUTING = _load("routing-summary.json")
 ROUTING["sentence_routing_by_layer"] = ROUTING["keeper_routing"]
 WEIGHTS = _load("weight-group.json")
 QUANT = _load("quant-sweep.json")
+BYTES = _load("bytes-per-token.json")

@@ -1,6 +1,6 @@
 from kit.scene import *
 
-from data import MATH, MEASURED, ROUTING
+from data import BYTES, MATH, MEASURED, ROUTING
 from scenes_a import bar
 
 DOMAINS = ["code", "prose", "math", "chinese", "json", "french"]
@@ -267,8 +267,57 @@ class MoESpeed(VScene):
         self.play(FadeIn(tl), LaggedStart(*[GrowFromEdge(b, LEFT) for b in busy], lag_ratio=0.1), FadeIn(key),
                   run_time=1.8)
 
-        # Beat 3: 8-bit slowdown tells the story
+        # Beat 3: gpt-oss, a mixture built from few, wide experts
         self.beat(3)
+        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
+        q, g = BYTES["qwen3.6-35b-a3b"], BYTES["gpt-oss-20b"]
+        speed = BYTES["measured_decode"]
+        title = T("two mixtures of experts, both 4-bit · your benchmarks", 26, C_GREY).to_edge(UP, buff=0.5)
+        xs = (-3.4, 0.6, 4.6)
+        head = [T("", 24), M("Qwen3.6-35B-A3B", 24, C_GOLD), M("gpt-oss-20b", 24, C_GREEN)]
+        rows_spec = [
+            ("layers", str(q["layers"]), str(g["layers"])),
+            ("experts", f"{q['experts']} narrow, {q['active_experts']} + 1 active",
+             f"{g['experts']} wide, {g['active_experts']} active"),
+            ("read per token", f"{q['gb_read_per_token']:.2f} GB", f"{g['gb_read_per_token']:.2f} GB"),
+            ("decode", f"{speed['qwen3.6-35b-a3b']} tokens/s", f"{speed['gpt-oss-20b']} tokens/s"),
+        ]
+
+        def place(cells, y):
+            for x, c in zip(xs, cells):
+                c.move_to([x, y, 0])
+            cells[0].move_to([xs[0] + 1.3 - cells[0].width / 2, y, 0])  # right-aligned labels
+            return VGroup(*cells)
+
+        table = [place(head, 2.4)]
+        for i, (name, a, b) in enumerate(rows_spec):
+            table.append(place([T(name, 24, C_GREY), T(a, 24, C_GOLD), T(b, 24, C_GREEN)], 1.7 - i * 0.6))
+        self.play(FadeIn(title), FadeIn(table[0]), run_time=0.6)
+        self.cue("built the other")
+        self.play(FadeIn(table[1]), FadeIn(table[2]), run_time=0.8)
+        self.cue("Per token")
+        self.play(FadeIn(table[3]), run_time=0.6)
+        self.cue("Yet it writes")
+        self.play(FadeIn(table[4]), run_time=0.6)
+        self.cue("It reaches")
+        share = VGroup()
+        for i, (m, color) in enumerate(((q, C_GOLD), (g, C_GREEN))):
+            y = -1.65 - i * 0.6
+            cap = bar(1, 1, 6, C_DIM, height=0.35).move_to([0, y, 0]).align_to(np.array([xs[0] - 0.9, 0, 0]), LEFT)
+            fill = bar(m["share_of_ceiling"], 1, 6, color, height=0.35).align_to(cap, LEFT).align_to(cap, UP)
+            lab = T(f"{m['share_of_ceiling']:.0%}", 22, color).next_to(cap, RIGHT, buff=0.2)
+            share.add(VGroup(cap, fill, lab))
+        share_t = T("share of the bandwidth ceiling reached", 22, C_GREY).next_to(share, UP, buff=0.2) \
+            .align_to(share, LEFT)
+        self.play(FadeIn(share_t), *[FadeIn(r[0]) for r in share], run_time=0.5)
+        self.play(*[GrowFromEdge(r[1], LEFT) for r in share], *[FadeIn(r[2]) for r in share], run_time=1.0)
+        self.cue("Its attention")
+        note = T("attention differs too (DeltaNet vs sliding window): not a controlled experiment", 20, C_GREY) \
+            .to_edge(DOWN, buff=0.45)
+        self.play(FadeIn(note), run_time=0.6)
+
+        # Beat 4: 8-bit slowdown tells the story
+        self.beat(4)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         title = T("decode slowdown from 4-bit to 8-bit (twice the bytes)", 26, C_GREY).to_edge(UP, buff=0.6)
         ax_len = 8
@@ -288,8 +337,8 @@ class MoESpeed(VScene):
         self.cue("The mixture of experts only")
         self.play(GrowFromEdge(bm, LEFT), FadeIn(lm), FadeIn(vm), run_time=0.8)
 
-        # Beat 4: prefill
-        self.beat(4)
+        # Beat 5: prefill
+        self.beat(5)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         title = T("time to first token, 4,000-token prompt", 26, C_GREY).to_edge(UP, buff=0.6)
         td = bar(36.6, 40, 10, C_BLUE, height=0.7).move_to(UP * 0.4).align_to(LEFT * 5, LEFT)
@@ -302,8 +351,8 @@ class MoESpeed(VScene):
         self.cue("That's why")
         self.play(GrowFromEdge(td, LEFT), FadeIn(ltd), GrowFromEdge(tm, LEFT), FadeIn(ltm), run_time=1.5)
 
-        # Beat 5: the catch, on code
-        self.beat(5)
+        # Beat 6: the catch, on code
+        self.beat(6)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
         title = VGroup(T("LiveCodeBench: 175 recent coding-contest problems", 26, C_GREY),
                        T("16k-token budget · your benchmarks", 22, C_GREY)).arrange(DOWN, buff=0.1) \

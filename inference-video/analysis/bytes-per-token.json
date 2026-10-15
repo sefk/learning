@@ -1,0 +1,26 @@
+{
+  "qwen3.6-35b-a3b": {
+    "layers": 40,
+    "experts": 256,
+    "active_experts": 8,
+    "expert_width": 512,
+    "gb_on_disk": 20.4,
+    "gb_read_per_token": 1.67,
+    "decode_ceiling": 239.6,
+    "share_of_ceiling": 0.28
+  },
+  "gpt-oss-20b": {
+    "layers": 24,
+    "experts": 32,
+    "active_experts": 4,
+    "expert_width": 2880,
+    "gb_on_disk": 12.08,
+    "gb_read_per_token": 2.57,
+    "decode_ceiling": 155.9,
+    "share_of_ceiling": 0.55
+  },
+  "measured_decode": {
+    "qwen3.6-35b-a3b": 67.3,
+    "gpt-oss-20b": 85.6
+  }
+}

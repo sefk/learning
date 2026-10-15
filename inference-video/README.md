@@ -9,7 +9,7 @@ quoted.
 
 | File | Part | Voice | Length |
 |------|------|-------|--------|
-| `local-inference-1.mp4` | 1. Mixture of experts | Heart | 12:17 |
+| `local-inference-1.mp4` | 1. Mixture of experts | Heart | 12:56 |
 | `local-inference-2.mp4` | 2. Quantization and context | Heart | 12:52 |
 
 Heart (`af_heart`) is an American female voice from [Kokoro-82M][kokoro], run
@@ -29,7 +29,7 @@ Part 1: mixture of experts.
 | The memory wall | `MemoryWall` | Decode reads every active weight once per token: bandwidth ÷ bytes is a hard ceiling (27.8 tok/s for the dense model; 18.5 measured). Prefill is compute-bound instead. Two levers: fewer weights per token, fewer bits per weight. |
 | Mixture of experts | `Experts` | The feed-forward network split into 256 experts per layer; a router picks 8, plus 1 shared; 320 routing decisions per token; 34.7 B stored, 2.95 B active. Load balancing. |
 | What an expert actually is | `WhatExperts` | What experts actually do, from hooking the routers of the local 4-bit model (below). |
-| Why 3.6× faster, not 9× | `MoESpeed` | Attention (1.28 B) is dense and bigger than the active experts; overhead dominates. The 4→8-bit slowdown (1.87× dense, 1.26× MoE) shows it. Prefill 6.4×. The catch: the dense model is the better coder. |
+| Why 3.6× faster, not 9× | `MoESpeed` | Attention (1.28 B) is dense and bigger than the active experts; overhead dominates. gpt-oss-20b (24 layers, 32 wide experts) reads more per token yet decodes faster: 55% of its ceiling vs 28%. The 4→8-bit slowdown (1.87× dense, 1.26× MoE) shows it. Prefill 6.4×. The catch: the dense model is the better coder. |
 | Speculative decoding | `Speculative` | Verify several guessed tokens for the price of one read; draft models and Qwen's built-in multi-token-prediction layer; why it helps experts less. |
 | Qwen 3 to 3.8 | `QwenLineage` | Qwen3-30B-A3B → Qwen3-Next → 3.5/3.6-35B-A3B: finer experts, a shared expert, 3:1 Gated DeltaNet. 3.6-27B and 3.8-27B configs are identical; 3.8 changed training (coding-agent benchmarks up, MMLU down on your benchmarks) and the lineup (512-expert MoEs, no 35B successor; Flash-Next's sparse attention and n-gram embeddings). Hand-off to part 2. |
 
@@ -71,6 +71,10 @@ regenerates in under a minute).
 - **`model_math.py`** — parameter counts per component, bytes per token,
   decode ceilings, and KV-cache sizes, computed from the two models'
   `config.json`. Totals come out at 34.7 B and 26.9 B, matching the names.
+- **`bytes_per_token.py`** — bytes one decoded token reads, summed from the
+  safetensors headers (embedding table and vision encoder excluded, experts
+  scaled by active/total), for the Qwen MoE and gpt-oss-20b. Qwen comes out
+  at 1.67 GB, matching `model_math.py`; gpt-oss at 2.57 GB.
 - **`weight_group.py`** — one real group of 64 weights read straight from the
   8-bit safetensors, re-rounded to 4 and 2 bits: typical error 9% and 46% of a
   weight's size.
@@ -122,7 +126,8 @@ environment (`uv run python …`).
 - Measurements: [`../../bench/REPORT.md`][report] and `analysis/` here.
 - Model configs: the local MLX builds, and Hugging Face for
   [Qwen3-30B-A3B][q3], [Qwen3-Next-80B-A3B][qnext], [Qwen3.5-35B-A3B][q35],
-  [Qwen3.8-2.4T-A95B][q38big] and [Qwen3.8-Flash-Next][q38flash].
+  [Qwen3.8-2.4T-A95B][q38big], [Qwen3.8-Flash-Next][q38flash] and
+  [gpt-oss-20b][gptoss].
 - Qwen3.8-27B benchmark figures: its [model card][q38].
 - [BitNet b1.58][bitnet].
 - [Gated Delta Networks][gdn] (Yang, Kautz and Hatamizadeh, 2024) and
@@ -143,3 +148,4 @@ environment (`uv run python …`).
 [bitnet]: https://arxiv.org/abs/2402.17764
 [gdn]: https://arxiv.org/abs/2412.06464
 [gqa]: https://arxiv.org/abs/2305.13245
+[gptoss]: https://huggingface.co/openai/gpt-oss-20b
