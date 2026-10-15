@@ -5,23 +5,19 @@ A ~7.7 minute explainer, in the style of [3Blue1Brown][3b1b], on how "thinking"
 training, backprop, and inference, and who uses LLMs heavily — including the
 local Qwen builds benchmarked in [`../../bench`][bench].
 
-The main version is narrated by Heart; two older versions with identical
-visuals, named after their narrator's voice, use male voices.
-All are 1080p60, built with the shared tools in [`../kit`][kit]:
+`thinking-mode.mp4` (7:46, 1080p60) is narrated by Heart (`af_heart`), an
+American female voice from [Kokoro-82M][kokoro], run locally. It's built with
+the shared tools in [`../kit`][kit]. Brian ([ElevenLabs][el]) and Michael
+(Kokoro) versions can still be built locally with `kit.build`, but are no
+longer published.
 
-| File | Voice | Engine | Length |
-|------|-------|--------|--------|
-| `thinking-mode.mp4` | Heart (`af_heart`), American female | [Kokoro-82M][kokoro] (local) | 7:46 |
-| `thinking-mode-brian.mp4` | Brian, American male | [ElevenLabs][el] (cloud, `eleven_multilingual_v2`) | 7:42 |
-| `thinking-mode-michael.mp4` | Michael (`am_michael`), American male | [Kokoro-82M][kokoro] (local) | 8:29 |
-
-The videos aren't committed: H.264 doesn't delta-compress, so every re-render
-would add a full copy to git history forever. Instead, publish each version
-as a GitHub Release asset, which sits outside the repo and doesn't count
-toward its size:
+The video isn't committed: H.264 doesn't delta-compress, so every re-render
+would add a full copy to git history forever. Instead, it's published as a
+GitHub Release asset, which sits outside the repo and doesn't count toward
+its size:
 
 ```sh
-gh release create thinking-video-v1 thinking-video/thinking-mode-*.mp4
+gh release upload thinking-video-v1 thinking-video/thinking-mode.mp4 --clobber
 ```
 
 ## What it covers

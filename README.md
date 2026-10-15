@@ -14,7 +14,7 @@ re-render would add a full copy to git history). They're published as GitHub
 Release assets instead, e.g.:
 
 ```sh
-gh release create thinking-video-v1 thinking-video/thinking-mode-*.mp4
+gh release create thinking-video-v1 thinking-video/thinking-mode.mp4
 ```
 
 ## How a video is made
